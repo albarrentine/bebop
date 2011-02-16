@@ -436,14 +436,3 @@ def generate_schema(schema, path = 'solr/conf/schema.xml'):
 def autodiscover(*package_dirs):
     pass
 
-if __name__ == '__main__':
-    schema = SolrSchema('first_schema',
-                        field_types=SolrFieldTypes(Integer, Text),
-                        fields = SolrFields(
-                            SolrField('foo', Text),
-                            SolrField('bar', Integer)
-                            )
-                        )
-
-    generate_schema(schema)
-    
