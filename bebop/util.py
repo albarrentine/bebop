@@ -68,7 +68,6 @@ def _to_xml(obj):
     for attr in q:
         value = getattr(obj, attr)
         # Append children first (recursive, but we don't need many levels)
-        # TODO: order this correctly, still using an unsorted dict
         if hasattr(value, 'to_xml'):
             element.append(value.to_xml())
         # Example: filters
