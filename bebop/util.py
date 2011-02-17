@@ -37,7 +37,7 @@ class classproperty(property):
     def __get__(self, cls, owner):
         return self.fget.__get__(None, owner)()
 
-def _to_camelcase(s):
+def to_camelcase(s):
     return ''.join([token.title() if i > 0 else token.lower() 
                     for i, token in enumerate(s.split('_'))])
     
@@ -53,7 +53,8 @@ def _sorted_update(elem, d):
 def _to_xml(obj):
     definitions = {}
     options = {}
-        
+
+    print obj.tag       
     element = etree.Element(obj.tag)
 
     for attr, transformed in obj.required.iteritems():
@@ -78,6 +79,8 @@ def _to_xml(obj):
             del(i)
             if hasattr(first, 'to_xml'):
                 [element.append(child.to_xml()) for child in value]
+        elif hasattr(value, 'value'):
+            element.text=value.value
         elif attr in obj.required:
             definitions[obj.required[attr]] = _stringify(value)
         elif attr in obj.optional:
@@ -110,9 +113,29 @@ class BaseSolrXMLElement(object):
     @classproperty
     @classmethod
     def optional(cls):
-        return dict([(attr, _to_camelcase(attr))
+        return dict([(attr, to_camelcase(attr))
                      for attr in cls.options])    
 
+def single_value_tag(tag, value):
+    return BaseSolrXMLElement(tag=tag, value=value)
+
+class SingleValueTagsMixin(BaseSolrXMLElement):
+    def __init__(self, camelcase=True, **kw):
+        for attr, val in kw.iteritems():
+            if val is None:
+                continue
+            if hasattr(val, 'to_xml'):
+                # Ignore XML elements so they can be mixed in freely
+                setattr(self, attr, val)
+                continue
+            
+            tag = to_camelcase(attr) if camelcase else attr
+            element = single_value_tag(tag, val)
+            setattr(self, attr, element)
+            
+        super(SingleValueTagsMixin, self).__init__()
+
+# OrderedSet, generally useful collection
 
 KEY, PREV, NEXT = range(3)
 
