@@ -8,15 +8,15 @@ from bebop import *
 from unittest import TestCase
 
 @Index('foo')
-class Foo(object):
+class Foo(SolrModel):
     id = DocumentId('id', Integer)
     name = Field('name', Title)
-    
+        
 class TestModel(TestCase):
 
     def test_internals(self):
         self.assertEquals(Foo.__index__, 'foo')
-        self.assertEquals(Foo.__fields__, ['id', 'name'])
+        self.assertEquals(Foo._fields, ['id', 'name'])
 
     def test_equals(self):
         clause = Foo.name == 'blah'
