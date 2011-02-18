@@ -34,7 +34,7 @@ class MainIndex(SingleValueTagsMixin):
                  max_buffered_docs=None,
                  max_merge_docs=None,
                  max_field_length=None):
-        SingleValueTagsMixin.__init__(kw.pop('self'),**locals())
+        SingleValueTagsMixin.__init__(locals().pop('self'),**locals())
 
 class AutoCommit(SingleValueTagsMixin):
     def __init__(self,
