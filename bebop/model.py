@@ -5,8 +5,9 @@ Created on Jan 21, 2011
 '''
 
 from connection import *
+from schema import SolrSchemaField
 
-def Index(name):
+def SearchIndex(name):
     def _Index(cls):
         cls.__index__ = name
         fields = filter(lambda attr: isinstance(getattr(cls,attr), Field), dir(cls))
@@ -16,16 +17,19 @@ def Index(name):
         return cls
     return _Index
 
-class SolrModel(object):
+class SearchableModel(object):
     def __init__(self, **kw):
         self._dict = kw
         for k,v in kw.iteritems():
             setattr(self, k, v)
 
-class Field(object):
-    def __init__(self, name, type, doc_id=False):
+class Field(SolrField):
+    def __init__(self, name, type, doc_id=False, model_attr=None):
+        super(Field, self).__init___()        
         self.name = name
         self.type = type
+        if model_attr:
+            self.model_attr = model_attr
     
     def _op(self, *components):
         # TODO: probably need some serialization crap in here

@@ -7,8 +7,8 @@ Created on Feb 14, 2011
 from bebop import *
 from unittest import TestCase
 
-@Index('foo')
-class Foo(SolrModel):
+@SearchIndex('foo')
+class Foo(SearchableModel):
     id = DocumentId('id', Integer)
     name = Field('name', Title)
         

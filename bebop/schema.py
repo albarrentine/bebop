@@ -5,6 +5,7 @@ Created on Jan 15, 2011
 '''
 
 import os
+import pkgutil
 from util import *
 
 class SolrFieldType(BaseSolrXMLElement):
@@ -389,24 +390,21 @@ class SolrFieldTypes(BaseSolrXMLElement):
     def __init__(self, *args):
         self.types = tuple(args)
 
-class SolrField(BaseSolrXMLElement):
+class SolrSchemaField(BaseSolrXMLElement):
     tag = 'field'
     required = dict([(attr, attr)
                     for attr in ['name', 'type']])
 
-    def __init__(self, type_name, type):
-        super(SolrField, self).__init__(name=type_name, type=type.type_name)
-
-    def __gt__(self, other):
-        return ','.join([self.name, ' > ', unicode(other)])
+    def __init__(self, name, type):
+        super(SolrSchemaField, self).__init__(name=name, type=type.type_name)
 
 
-class SolrFields(BaseSolrXMLElement):  
+class SolrSchemaFields(BaseSolrXMLElement):  
     tag = 'fields'
     fields = ()
     
     def __init__(self, *args):
-        super(SolrFields, self).__init__(fields=args)
+        super(SolrSchemaFields, self).__init__(fields=args)
 
 class SolrSchema(BaseSolrXMLElement):
     tag = 'schema'
@@ -417,7 +415,7 @@ class SolrSchema(BaseSolrXMLElement):
 
     def __init__(self, name, version='1.1',
                     field_types=SolrFieldTypes(),
-                    fields=SolrFields()):
+                    fields=SolrSchemaFields()):
         self.name = name
         self.version = version
         self.field_types = field_types
@@ -432,7 +430,15 @@ def generate_schema(schema, path = 'solr/conf/schema.xml'):
     
     tree = etree.ElementTree(schema.to_xml())
     tree.write(path, encoding='utf-8', xml_declaration=True, pretty_print=True)
-        
-def autodiscover(*package_dirs):
-    pass
-
+    
+def autodiscover(*packages):
+    for package in packages:
+        pkg_path = os.path.dirname(package.__file__)
+        module_names = [name for _, name, _ in pkgutil.iter_modules([pkg_path])]
+        for module_name in module_names:
+            qualified_name = package.__name__ + '.' + module_name
+            module = __import__(qualified_name)
+            for attr in module:
+                if isinstance(getattr(module, attr), SolrSchemaField):
+                    pass
+                    
