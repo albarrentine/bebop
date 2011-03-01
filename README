@@ -31,4 +31,13 @@ Some dependency stuff:
 
 2) pysolr is currently the underlying driver for this project. That's the kind of thing that might benefit from a C implementation, although I suspect that if you need that at the "driver" level you're probably doing something wrong.
 
+Running the tests:
+
+cd bebop
+nosetests ./test
+
+On generated schemas:
+
+I've debated how much deploy stuff to put in this lib, and have decided to stay out of it wherever possible. I'm not going to touch setting up Jetty/Tomcat/Resin and where you put your data vs. schema etc. In the simplest case, just copy the example stuff from your Solr distro to /opt/solr and replace the "solr" directory with what bebop generates for you. Then you should be able to start your servlet container (e.g. "java -jar start.jar" in the case of Jetty) pretty seamlessly.
+
 Word.
