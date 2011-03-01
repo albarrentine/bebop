@@ -15,13 +15,15 @@
 
 Bebop is a Solr abstraction library written for the busy developer.
 
-pysolr is great, and is in fact a dependency for this library.
+pysolr is great, and is in fact a dependency for this library, so not trying to duplicate effort on that front. I'd say pysolr is to MySQLdb as bebop is to SQLAlchemy. Bebop is designed to be a full-fledged ORM (OIM? Object-Index-Mapper?) for translating between your domain models and your Solr Index.
 
-Bebop on the other hand is designed to be a full-fledged ORM (OIM? Object-Index-Mapper?) for translating between your domain models and your Solr Index.
+Similar projects include Django's haystack, although that is not specifically designed with Solr in mind and cannot generate Solr's various XML schemas nor produce its queries in as tailored a manner as can bebop. I'm not particularly concerned with Whoosh and Xapian and Sphinx.
 
-Similar projects include Django's haystack, although that is not specifically designed with Solr in mind and cannot generate Solr's various XML schemas as completely as bebop can. I'm not particularly concerned with Whoosh and Xapian and Sphinx.
+Despite the dynamic duo reference, bebop is in no way dependent on rocksteady and is agnostic as to which domain models you're trying to create.
 
-TODO: usage examples!!!!
+I've had bad experiences with trying to do a Solr import all in one SQL query in the past. I'll try to provide some examples with server-side cursors to show what a chunked import looks like.
+
+TODO: USAGE EXAMPLES!!!!
 
 Some dependency stuff:
 
