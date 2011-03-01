@@ -10,6 +10,8 @@ from schema import SolrSchemaField
 def SearchIndex(name):
     def _Index(cls):
         cls.__index__ = name
+        if not hasattr(cls, '_target') or cls._target is None:
+            raise Exception('Class "%s" must have attribute _target' % cls.__name__)
         fields = filter(lambda attr: isinstance(getattr(cls,attr), Field), dir(cls))
         cls._fields = fields
         cls._models_to_solr = dict([(field, getattr(cls, field).name) for field in fields])
@@ -18,14 +20,19 @@ def SearchIndex(name):
     return _Index
 
 class SearchableModel(object):
-    def __init__(self, **kw):
-        self._dict = kw
-        for k,v in kw.iteritems():
-            setattr(self, k, v)
+    _target = None
+    
+    @classmethod
+    def _to_solr_doc(cls, obj):
+        return dict([(v, getattr(obj, k)) for k, v in cls._models_to_solr.iteritems()])
 
-class Field(SolrField):
-    def __init__(self, name, type, doc_id=False, model_attr=None):
-        super(Field, self).__init___()        
+    @classmethod
+    def _create_target(cls, doc):
+        return cls._target(**dict([(k, v) for k,v in cls._solr_to_models.iteritems()]))
+
+class Field(SolrSchemaField):
+    def __init__(self, name, type, doc_id=False, model_attr=None):     
+        super(Field, self).__init__(name, type)
         self.name = name
         self.type = type
         if model_attr:
