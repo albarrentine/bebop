@@ -1,0 +1,32 @@
+                                          .-'''-.                           
+                                         '   _    \                         
+/|              __.....__     /|       /   /` '.   \_________   _...._      
+||          .-''         '.   ||      .   |     \  '\        |.'      '-.   
+||         /     .-''"'-.  `. ||      |   '      |  '\        .'```'.    '. 
+||  __    /     /________\   \||  __  \    \     / /  \      |       \     \
+||/'__ '. |                  |||/'__ '.`.   ` ..' /    |     |        |    |
+|:/`  '. '\    .-------------'|:/`  '. '  '-...-'`     |      \      /    . 
+||     | | \    '-.____...---.||     | |               |     |\`'-.-'   .'  
+||\    / '  `.             .' ||\    / '               |     | '-....-'`    
+|/\'..' /     `''-...... -'   |/\'..' /               .'     '.             
+'  `'-'`                      '  `'-'`              '-----------'           
+
+----------------------------------------------------------------------------
+
+Bebop is a Solr abstraction library written for the busy developer.
+
+pysolr is great, and is in fact a dependency for this library.
+
+Bebop on the other hand is designed to be a full-fledged ORM (OIM? Object-Index-Mapper?) for translating between your domain models and your Solr Index.
+
+Similar projects include Django's haystack, although that is not specifically designed with Solr in mind and cannot generate Solr's various XML schemas as completely as bebop can. I'm not particularly concerned with Whoosh and Xapian and Sphinx.
+
+TODO: usage examples!!!!
+
+Some dependency stuff:
+
+1) The schema generation stuff uses lxml. It's a dependable and super-fast library, but requires C compilation which is always a bitch, so make sure you have the following packages installed (using Debian/Ubuntu names because that's what I know): libxml2, libxslt1, libxml2-dev libxslt1-dev
+
+2) pysolr is currently the underlying driver for this project. That's the kind of thing that might benefit from a C implementation, although I suspect that if you need that at the "driver" level you're probably doing something wrong.
+
+Word.
