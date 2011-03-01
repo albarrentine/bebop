@@ -6,9 +6,9 @@ class TestGenerateSchema(TestCase):
         filename = './test/unit_test_schema.xml'
         schema = SolrSchema('test_schema',
                             field_types=SolrFieldTypes(Integer, Text),
-                            fields = SolrFields(
-                                SolrField('foo', Text),
-                                SolrField('bar', Integer)
+                            fields = SolrSchemaFields(
+                                Field('foo', Text),
+                                Field('bar', Integer)
                                 )
                             )
         generate_schema(schema, path=filename)
