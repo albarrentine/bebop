@@ -32,9 +32,7 @@ class SearchableModel(object):
 
 class Field(SolrSchemaField):
     def __init__(self, name, type, doc_id=False, model_attr=None):     
-        super(Field, self).__init__(name, type)
-        self.name = name
-        self.type = type
+        super(Field, self).__init__(name=name, type=type)
         if model_attr:
             self.model_attr = model_attr
     
