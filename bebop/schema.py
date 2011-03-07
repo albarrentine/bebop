@@ -7,6 +7,7 @@ Created on Jan 15, 2011
 import os
 import pkgutil
 from util import *
+from collections import deque
 
 class SolrFieldType(BaseSolrXMLElement):
     tag = "fieldType"
@@ -259,7 +260,7 @@ class Analyzer(BaseSolrXMLElement):
     QUERY = 'query'
     
     tag = 'analyzer'
-    options = ['type', 'filters']
+    options = ['type']
     
     tokenizer = WhitespaceTokenizer
     filters = ()
@@ -402,28 +403,34 @@ class SolrSchemaField(BaseSolrXMLElement):
 class SolrSchemaFields(BaseSolrXMLElement):  
     tag = 'fields'
     fields = ()
+    dependency = SolrFieldTypes
     
     def __init__(self, *args):
         super(SolrSchemaFields, self).__init__(fields=args)
+
+class UniqueKey(BaseSolrXMLElement):
+    tag = 'uniqueKey'
+    dependency = SolrSchemaFields
+    value = None
+
+    def __init__(self, name=None):
+        self.value = name
 
 class SolrSchema(BaseSolrXMLElement):
     tag = 'schema'
     required = dict([(attr, attr)
                     for attr in ['name', 'version']])
 
-    child_order = ['field_types', 'fields']
-
     def __init__(self, name, version='1.1',
                     field_types=SolrFieldTypes(),
-                    fields=SolrSchemaFields()):
+                    fields=SolrSchemaFields(), **kw):
         self.name = name
         self.version = version
         self.field_types = field_types
         self.names_to_fields = dict([(field_type.type_name, field_type)
                                      for field_type in field_types.types])
         self.fields = fields
-        super(SolrSchema, self).__init__()
-
+        super(SolrSchema, self).__init__(**kw)
 
 def generate_schema(schema, path = 'solr/conf/schema.xml'):
     ensure_dir(os.path.dirname(path))
