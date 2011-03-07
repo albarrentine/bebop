@@ -7,8 +7,9 @@ Created on Jan 19, 2011
 from lxml import etree
 from lxml import builder
 from lxml import objectify
-import collections
+from collections import defaultdict, deque, MutableSet
 import os
+import inspect
         
 E = objectify.ElementMaker(annotate=False)
 
@@ -48,53 +49,98 @@ def _stringify(obj):
     return E._dummy_node(obj).text
 
 def _sorted_update(elem, d):
-    elem.attrib.update(sorted(d.iteritems()))
+    elem.attrib.update(sorted(d.iteritems()))    
 
-def _to_xml(obj):
-    definitions = {}
-    options = {}
+def get_class(obj):
+    if inspect.isclass(obj):
+        return obj
+    else:
+        return obj.__class__
 
-    print obj.tag       
-    element = etree.Element(obj.tag)
-
-    for attr, transformed in obj.required.iteritems():
-        definitions[transformed] = _stringify(getattr(obj, attr))
+def _collect_dependencies(obj, deps=defaultdict(set), refs=defaultdict(int)):
+    for attr, value in obj.__dict__.iteritems():
+        # Dependencies are XML orderings, so we don't care about non-XMLable attributes
+        if hasattr(value, 'dependency'):
+            # deps[SolrFieldTypes]=set(UniqueKey('foo'))
+            deps[get_class(value.dependency)].add(value)
+            # ref_counts[elem]==1 means that elem is waiting on 1 node to complete
+            refs[value]+=1
             
-    q = OrderedSet()
-    # Prioritize elements if specified in an iterable called child_order
-    if hasattr(obj, 'child_order'):
-        [q.add(k) for k in obj.child_order]
-    [q.add(k) for k in obj.__dict__]
-         
-    for attr in q:
-        value = getattr(obj, attr)
-        # Append children first (recursive, but we don't need many levels)
         if hasattr(value, 'to_xml'):
-            element.append(value.to_xml())
-        # Example: filters
-        # TODO: are there any use cases where this is not the expected behavior?
-        elif hasattr(value, '__iter__'):
-            i = iter(value)
-            first = i.next()
-            del(i)
-            if hasattr(first, 'to_xml'):
-                [element.append(child.to_xml()) for child in value]
-        elif hasattr(value, 'value'):
-            element.text=value.value
-        elif attr in obj.required:
-            definitions[obj.required[attr]] = _stringify(value)
-        elif attr in obj.optional:
-            options[obj.optional[attr]] = _stringify(value)
-                    
-    _sorted_update(element, definitions)
-    _sorted_update(element, options)
+            deps, refs = _collect_dependencies(value, deps, refs)
+        elif hasattr(value, '__iter__') and hasattr(iter(value).next(), 'to_xml'):
+            for val in value:
+                deps, refs = _collect_dependencies(val, deps, refs)
+            
+    return deps, refs
+        
+def _to_xml(node):
+    root=None
+    # Topsort: schedule items with no dependers
+    # Queue items are a tuple of (obj, parent)
+    q=deque([(node, None)])
+    dependency_graph, ref_counts = _collect_dependencies(node)
+     
+    #[q.append((value,node)) for value in node.__dict__.itervalues() if hasattr(value, 'to_xml') and ref_counts[value] == 0]
+
+    while q:
+        obj, parent = q.popleft()
+
+        element = etree.Element(obj.tag)
+        if obj is node:
+            root=element
+        
+        definitions = {}
+        options = {}
+        for attr, transformed in obj.required.iteritems():
+            definitions[transformed] = _stringify(getattr(obj, attr))
+
+        for attr, value in obj.__dict__.iteritems():
+            if attr in obj.required:
+                definitions[obj.required[attr]] = _stringify(value)
+            elif attr in obj.optional:
+                options[obj.optional[attr]] = _stringify(value)
+            elif attr=='value':
+                element.text=value
+            # Append children (recursive, but we don't need many levels)
+            elif hasattr(value, 'to_xml') and not hasattr(value, 'dependency'):
+                q.append((value, element))
+            # Example: filters
+            # TODO: are there any use cases where this is not the expected behavior?
+            elif hasattr(value, '__iter__'):
+                i = iter(value)
+                first = i.next()
+                del(i)
+                if hasattr(first, 'to_xml') and not hasattr(value, 'dependency'):
+                    #parent_node = parent if hasattr(first, 'dependency') else element
+                    q.extend([(child, element) for child in value])
+
                 
-    return element    
+        _sorted_update(element, definitions)
+        _sorted_update(element, options)
+        
+        
+
+        cls = get_class(obj)
+        if cls in dependency_graph:
+            for dep in dependency_graph[cls]:
+                ref_counts[dep]-=1
+                if ref_counts[dep]==0:
+                    q.appendleft((dep, parent))
+            del(dependency_graph[cls])
+                
+        if parent is not None:
+            parent.append(element)
+    
+
+                        
+    return root
 
 class BaseSolrXMLElement(object):
     required = {}
     options = []
     tag = None
+    ref_count = 0
         
     def __init__(self, **kw):
         for k, v in kw.iteritems():
@@ -106,9 +152,11 @@ class BaseSolrXMLElement(object):
     def instance_to_xml(self):
         return _to_xml(self)
     
+    
     @classmethod
     def to_xml(cls):
         return _to_xml(cls)
+    
     
     @classproperty
     @classmethod
@@ -134,12 +182,12 @@ class SingleValueTagsMixin(BaseSolrXMLElement):
             setattr(self, attr, element)
             
         super(SingleValueTagsMixin, self).__init__()
-
+        
 # OrderedSet, generally useful collection
 
 KEY, PREV, NEXT = range(3)
 
-class OrderedSet(collections.MutableSet):
+class OrderedSet(MutableSet):
     def __init__(self, iterable=None):
         self.end = end = [] 
         end += [None, end, end]         # sentinel node for doubly linked list
