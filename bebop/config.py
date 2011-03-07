@@ -117,7 +117,7 @@ DismaxSolrConfig = SolrConfig(lucene_match_version='LUCENE_40',
                               dismax = DismaxRequestHandler
                               )
     
-def generate_config(config, path = 'solr/conf/solr-config.xml'):
+def generate_config(config, path = 'solr/conf/solrconfig.xml'):
     ensure_dir(os.path.dirname(path))
     
     tree = etree.ElementTree(config.to_xml())
@@ -179,4 +179,4 @@ def generate_multicore_schema(conf=None, path_root='solr/', **indexes):
         xml_schema = etree.ElementTree(schema.to_xml())
         xml_schema.write(os.path.join(path_root, index, 'conf', 'schema.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)
         xml_conf = etree.ElementTree(conf.to_xml())
-        xml_conf.write(os.path.join(path_root, index, 'conf', 'solr-config.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)     
+        xml_conf.write(os.path.join(path_root, index, 'conf', 'solrconfig.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)     
