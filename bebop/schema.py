@@ -5,7 +5,6 @@ Created on Jan 15, 2011
 '''
 
 import os
-import pkgutil
 from util import *
 from collections import deque
 
@@ -436,16 +435,4 @@ def generate_schema(schema, path = 'solr/conf/schema.xml'):
     ensure_dir(os.path.dirname(path))
     
     tree = etree.ElementTree(schema.to_xml())
-    tree.write(path, encoding='utf-8', xml_declaration=True, pretty_print=True)
-    
-def autodiscover(*packages):
-    for package in packages:
-        pkg_path = os.path.dirname(package.__file__)
-        module_names = [name for _, name, _ in pkgutil.iter_modules([pkg_path])]
-        for module_name in module_names:
-            qualified_name = package.__name__ + '.' + module_name
-            module = __import__(qualified_name)
-            for attr in module:
-                if isinstance(getattr(module, attr), SolrSchemaField):
-                    pass
-                    
+    tree.write(path, encoding='utf-8', xml_declaration=True, pretty_print=True)                    
