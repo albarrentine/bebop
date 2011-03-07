@@ -11,7 +11,7 @@ from collections import defaultdict, deque, MutableSet
 import os
 import inspect
         
-E = objectify.ElementMaker(annotate=False)
+__E = objectify.ElementMaker(annotate=False)
 
 def ensure_dir(d):
     if not os.path.exists(d):
@@ -46,7 +46,7 @@ def to_camelcase(s):
 def _stringify(obj):
     # TODO: write your own PyObject > string conversion
     # or find a better way to do this
-    return E._dummy_node(obj).text
+    return __E._dummy_node(obj).text
 
 def _sorted_update(elem, d):
     elem.attrib.update(sorted(d.iteritems()))    
@@ -102,6 +102,9 @@ def _to_xml(node):
                 options[obj.optional[attr]] = _stringify(value)
             elif attr=='value':
                 element.text=value
+            # For referencing elements without throwing them in the schema, use an underscore
+            elif attr.startswith('_'):
+                continue
             # Append children (recursive, but we don't need many levels)
             elif hasattr(value, 'to_xml') and not hasattr(value, 'dependency'):
                 q.append((value, element))
