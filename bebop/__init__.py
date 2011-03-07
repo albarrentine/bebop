@@ -14,14 +14,12 @@ def autodiscover_indexes(*packages):
             __import__(qualified_name)
             module=sys.modules[qualified_name]
             for attr, value in inspect.getmembers(module):
-                if attr in ('Foo', 'Bar'):
-                    print attr
                 if hasattr(value, 'schema'):
                     indexes[value.__index__] = {'schema': value.schema,
                                                 'config': value.config}
     return indexes
 
-def generate_solr_configs(core_admin_conf=None, **indexes):
+def generate_solr_configs(indexes, core_admin_conf=None):
     if len(indexes) > 1:
         generate_multicore_schema(core_admin_conf, **indexes)
     else:
