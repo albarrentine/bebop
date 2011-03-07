@@ -394,6 +394,9 @@ class SolrSchemaField(BaseSolrXMLElement):
     tag = 'field'
     required = dict([(attr, attr)
                     for attr in ['name', 'type']])
+    options = ['indexed', 'stored', 'multi_valued', 'sort_missing_last',
+               'sort_missing_first', 'compressed', 'term_vectors', 'omit_norms',
+               'position_increment_gap']
 
     def __init__(self, name, type):
         super(SolrSchemaField, self).__init__(name=name, type=type.type_name)

@@ -46,11 +46,17 @@ class SearchableModel(object):
         return cls._target(**dict([(k, v) for k,v in cls._solr_to_models.iteritems()]))
 
 class Field(SolrSchemaField):
-    def __init__(self, name, type, model_attr=None):     
+    def __init__(self, name, type, multi_valued=None, indexed=None, stored=None, model_attr=None):     
         super(Field, self).__init__(name=name, type=type)
         self._type = type
+        if indexed is not None:
+            self.indexed = indexed
+        if stored is not None:
+            self.stored = stored
+        if multi_valued is not None:
+            self.multi_valued = multi_valued
         if model_attr:
-            self.model_attr = model_attr
+            self._model_attr = model_attr
     
     def _op(self, *components):
         # TODO: probably need some serialization crap in here
@@ -87,4 +93,4 @@ def or_(*args):
 class DocumentId(Field):
     def __init__(self, name, type, model_attr=None):
         self.unique_key = UniqueKey(name)
-        return super(DocumentId, self).__init__(name, type, model_attr)    
+        return super(DocumentId, self).__init__(name, type, model_attr=model_attr)
