@@ -1,6 +1,8 @@
 from schema import *
 from model import *
 from config import *
+from data_import import *
+
 import pkgutil
 import sys
 
