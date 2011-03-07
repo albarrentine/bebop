@@ -5,9 +5,9 @@ Created on Jan 21, 2011
 '''
 
 from connection import *
-from schema import SolrSchemaField
+from schema import *
 
-def SearchIndex(name):
+def SearchIndex(name, generate_schema=True):
     def _Index(cls):
         cls.__index__ = name
         if not hasattr(cls, '_target') or cls._target is None:
@@ -70,4 +70,5 @@ def or_(*args):
 
 class DocumentId(Field):
     def __init__(self, name, type):
-        return super(DocumentId, self).__init__(name, type, doc_id = True)    
+        self.unique_key = UniqueKey(name)
+        return super(DocumentId, self).__init__(name, type)    
