@@ -5,7 +5,7 @@ Created on Mar 7, 2011
 '''
 
 class BatchIndexer(object):
-    def __init__(self, solr_conn, db_conn, index_query, batch_size=100):
+    def __init__(self, solr_conn, db_conn, index_query, batch_size=1000):
         self.batch_size = batch_size
         self.solr_conn = solr_conn
         self.db_conn = db_conn.cursor()
@@ -40,7 +40,7 @@ if __name__ == '__main__':
                               cursorclass=cursors.SSDictCursor
                               )
     
-    indexer = BatchIndexer(solr_conn, db_conn, "select * from solr_test")
+    indexer = BatchIndexer(solr_conn, db_conn, "select * from solr_test", batch_size=1000)
     print "Executing query..."
     indexer.exec_query()
     print "Running indexer..."
