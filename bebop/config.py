@@ -122,3 +122,61 @@ def generate_config(config, path = 'solr/conf/solr-config.xml'):
     
     tree = etree.ElementTree(config.to_xml())
     tree.write(path, encoding='utf-8', xml_declaration=True, pretty_print=True)
+    
+    
+class SolrCore(BaseSolrXMLElement):
+    tag='core'
+    name = None
+    instance_dir = None
+    
+    required = dict((attr, attr) for attr in ['name', 'instance_dir'])
+    
+    def __init__(self, name, instance_dir):
+        self.name = name
+        self.instance_dir = instance_dir 
+    
+class SolrCores(BaseSolrXMLElement):
+    tag='cores'
+    
+    options = ['admin_path']
+    admin_path='/admin/cores'
+    
+    def __init__(self, admin_path=None, cores=None):
+        if admin_path:
+            self.admin_path = admin_path
+        self.cores = cores
+    
+class SolrMulticoreXML(BaseSolrXMLElement):
+    tag = 'solr'
+    persistent=False
+    
+    def __init__(self, solr_cores=SolrCores(admin_path='/admin/cores',
+                                            cores=[SolrCore('core0', 'core0')]), persistent=None):
+        super(SolrMulticoreXML, self).__init__(solr_cores=solr_cores, 
+                                               persistent=persistent if persistent is not None else self.persistent)
+    
+def get_multicore_conf(**indexes):
+    core_xml = SolrMulticoreXML(solr_cores=SolrCores(admin_path='/admin/cores',
+                                                     cores=[SolrCore(name=index, instance_dir=index)
+                                                            for index in indexes.keys()]
+                                                     )
+                                )
+    return core_xml
+    
+
+def generate_multicore_schema(conf=None, path_root='solr/', **indexes):
+    core_xml = conf or get_multicore_conf(**indexes)
+    
+    ensure_dir(os.path.dirname(path_root))
+    
+    
+    tree = etree.ElementTree(core_xml.to_xml())
+    tree.write(os.path.join(path_root, 'solr.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)
+
+    for index, index_specs in indexes.iteritems():
+        conf, schema = index_specs['config'], index_specs['schema']
+        ensure_dir(os.path.join(path_root, index, 'conf'))
+        xml_schema = etree.ElementTree(schema.to_xml())
+        xml_schema.write(os.path.join(path_root, index, 'conf', 'schema.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)
+        xml_conf = etree.ElementTree(conf.to_xml())
+        xml_conf.write(os.path.join(path_root, index, 'conf', 'solr-config.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)     
