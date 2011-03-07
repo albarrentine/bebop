@@ -286,6 +286,7 @@ class Text(BaseText):
                                          WordDelimiterFilter(generate_word_parts=1, generate_number_parts=1, catenate_words=1, 
                                                              catenate_numbers=1, catenate_all=0, split_on_case_change=1),
                                          LowerCaseFilter,
+                                         ISOLatin1AccentFilter,
                                          EnglishPorterFilter(protected='protwords.txt'),
                                          RemoveDuplicatesFilter
                                          )
@@ -297,6 +298,7 @@ class Text(BaseText):
                                          WordDelimiterFilter(generate_word_parts=1, generate_number_parts=1, catenate_words=1, 
                                                              catenate_numbers=0, catenate_all=0, split_on_case_change=1),
                                          LowerCaseFilter,
+                                         ISOLatin1AccentFilter,
                                          EnglishPorterFilter(protected='protwords.txt'),
                                          RemoveDuplicatesFilter
                                          )
@@ -322,6 +324,7 @@ class Title(BaseText):
                         filters = (StopFilter(ignore_case=True, words='stopwords.txt'),
                                    WordDelimiterFilter(generate_word_parts=0, generate_number_parts=0, catenate_words=1, catenate_numbers=1, catenate_all=0),
                                    LowerCaseFilter,
+                                   ISOLatin1AccentFilter,
                                    RemoveDuplicatesFilter
                                    )
                         )
