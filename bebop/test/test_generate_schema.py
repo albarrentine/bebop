@@ -8,7 +8,7 @@ class TestGenerateSchema(TestCase):
                             field_types=SolrFieldTypes(Integer, Text),
                             fields = SolrSchemaFields(
                                 Field('foo', Text),
-                                Field('bar', Integer)
+                                DocumentId('bar', Integer)
                                 )
                             )
         generate_schema(schema, path=filename)
