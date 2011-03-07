@@ -6,8 +6,9 @@ Created on Jan 21, 2011
 
 from connection import *
 from schema import *
+from config import *
 
-def SearchIndex(name, generate_schema=True):
+def SearchIndex(name, config=StandardSolrConfig, generate_schema=True):
     def _Index(cls):
         cls.__index__ = name
         if not hasattr(cls, '_target') or cls._target is None:
@@ -16,6 +17,20 @@ def SearchIndex(name, generate_schema=True):
         cls._fields = fields
         cls._models_to_solr = dict([(field, getattr(cls, field).name) for field in fields])
         cls._solr_to_models = dict([(v,k) for k,v in cls._models_to_solr.iteritems()])
+        
+        cls.schema=None
+        if generate_schema:
+            field_types=[]
+            schema_fields=[]
+            for attr in fields:
+                schema_fields.append(getattr(cls, attr))
+                field_types.append(getattr(cls,attr)._type)
+                
+            cls.schema=SolrSchema(name=name, 
+                                  fields=SolrSchemaFields(*schema_fields),
+                                  field_types=SolrFieldTypes(*field_types)
+                                  )        
+        cls.config=config
         return cls
     return _Index
 
@@ -31,8 +46,9 @@ class SearchableModel(object):
         return cls._target(**dict([(k, v) for k,v in cls._solr_to_models.iteritems()]))
 
 class Field(SolrSchemaField):
-    def __init__(self, name, type, doc_id=False, model_attr=None):     
+    def __init__(self, name, type, model_attr=None):     
         super(Field, self).__init__(name=name, type=type)
+        self._type = type
         if model_attr:
             self.model_attr = model_attr
     
@@ -69,6 +85,6 @@ def or_(*args):
     return '(' + ' OR '.join(args) + ')' 
 
 class DocumentId(Field):
-    def __init__(self, name, type):
+    def __init__(self, name, type, model_attr=None):
         self.unique_key = UniqueKey(name)
-        return super(DocumentId, self).__init__(name, type)    
+        return super(DocumentId, self).__init__(name, type, model_attr)    
