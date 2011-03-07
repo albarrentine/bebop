@@ -20,11 +20,11 @@ def SearchIndex(name, config=StandardSolrConfig, generate_schema=True):
         
         cls.schema=None
         if generate_schema:
-            field_types=[]
+            field_types=set()
             schema_fields=[]
             for attr in fields:
                 schema_fields.append(getattr(cls, attr))
-                field_types.append(getattr(cls,attr)._type)
+                field_types.add(getattr(cls,attr)._type)
                 
             cls.schema=SolrSchema(name=name, 
                                   fields=SolrSchemaFields(*schema_fields),
