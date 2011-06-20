@@ -17,19 +17,15 @@ class BarDB(object):
         for attr, val in kw.iteritems():
             setattr(self, attr, val)
 
-
 @SearchIndex('foo')
 class Foo(object):
-    _target=FooDB
     id = DocumentId('id', Integer, model_attr='id')
     name = Field('name', Title, model_attr='name')
 
 @SearchIndex('bar', config=DismaxSolrConfig)
 class Bar(object):
-    _target=BarDB
     id = DocumentId('id', Integer, model_attr='id')
     name = Field('name', Title, model_attr='name')
-
 
 class TestModel(TestCase):
 
