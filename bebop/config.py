@@ -197,10 +197,9 @@ def generate_multicore_schema(conf=None, path_root='solr/', **indexes):
     tree = etree.ElementTree(core_xml.to_xml())
     tree.write(os.path.join(path_root, 'solr.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)
 
-    for index, index_specs in indexes.iteritems():
-        conf, schema = index_specs['config'], index_specs['schema']
-        ensure_dir(os.path.join(path_root, index, 'conf'))
-        xml_schema = etree.ElementTree(schema.to_xml())
+    for index_name, index in indexes.iteritems():
+        ensure_dir(os.path.join(path_root, index_name, 'conf'))
+        xml_schema = etree.ElementTree(index.solr_schema.to_xml())
         xml_schema.write(os.path.join(path_root, index, 'conf', 'schema.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)
-        xml_conf = etree.ElementTree(conf.to_xml())
+        xml_conf = etree.ElementTree(index.solr_config.to_xml())
         xml_conf.write(os.path.join(path_root, index, 'conf', 'solrconfig.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)
