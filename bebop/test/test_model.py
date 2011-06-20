@@ -19,22 +19,22 @@ class BarDB(object):
 
 
 @SearchIndex('foo')
-class Foo(SearchableModel):
+class Foo(object):
     _target=FooDB
     id = DocumentId('id', Integer, model_attr='id')
     name = Field('name', Title, model_attr='name')
-   
+
 @SearchIndex('bar', config=DismaxSolrConfig)
-class Bar(SearchableModel):
+class Bar(object):
     _target=BarDB
     id = DocumentId('id', Integer, model_attr='id')
     name = Field('name', Title, model_attr='name')
-        
-        
+
+
 class TestModel(TestCase):
 
     def test_internals(self):
-        self.assertEquals(Foo.__index__, 'foo')
+        self.assertEquals(Foo.__solr_index__, 'foo')
         self.assertEquals(Foo._fields, ['id', 'name'])
 
     def test_equals(self):
