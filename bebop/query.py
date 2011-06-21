@@ -57,7 +57,7 @@ class SolrQuery(object):
         return self
 
     def offset(self, offset):
-        self.params['offset'] = offset
+        self.params['start'] = offset
         return self
 
     def queried_fields(self, *fields):
