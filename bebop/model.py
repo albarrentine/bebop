@@ -4,6 +4,7 @@ Created on Jun 20, 2011
 @author: al
 '''
 
+from schema import SolrSchemaField, UniqueKey
 
 class Field(SolrSchemaField):
     def __init__(self, name, type, multi_valued=None, indexed=None, stored=None, model_attr=None):

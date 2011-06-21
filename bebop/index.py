@@ -4,10 +4,9 @@ Created on Jan 21, 2011
 @author: al
 '''
 
-from connection import *
-from schema import *
-from query import *
-from config import *
+from schema import SolrSchema, SolrSchemaFields, SolrFieldTypes
+from model import Field
+from config import StandardSolrConfig
 
 def SearchIndex(name, config=StandardSolrConfig, generate_schema=True):
     def _to_solr_doc(self):
