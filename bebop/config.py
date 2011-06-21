@@ -200,6 +200,6 @@ def generate_multicore_schema(conf=None, path_root='solr/', **indexes):
     for index_name, index in indexes.iteritems():
         ensure_dir(os.path.join(path_root, index_name, 'conf'))
         xml_schema = etree.ElementTree(index.solr_schema.to_xml())
-        xml_schema.write(os.path.join(path_root, index, 'conf', 'schema.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)
+        xml_schema.write(os.path.join(path_root, index.__solr_index__, 'conf', 'schema.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)
         xml_conf = etree.ElementTree(index.solr_config.to_xml())
-        xml_conf.write(os.path.join(path_root, index, 'conf', 'solrconfig.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)
+        xml_conf.write(os.path.join(path_root, index.__solr_index__, 'conf', 'solrconfig.xml'), encoding='utf-8', xml_declaration=True, pretty_print=True)
