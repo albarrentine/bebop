@@ -8,8 +8,8 @@ from schema import SolrSchemaField, UniqueKey
 
 class Field(SolrSchemaField):
     def __init__(self, name, type, multi_valued=None, indexed=None, stored=None, model_attr=None):
-        super(Field, self).__init__(name=name, type=type)
-        self._type = type
+        super(Field, self).__init__(solr_field_name=name, solr_field_type=type)
+        self._solr_field_type = type
         if indexed is not None:
             self.indexed = indexed
         if stored is not None:
@@ -21,7 +21,7 @@ class Field(SolrSchemaField):
 
     def _op(self, *components):
         # TODO: probably need some serialization crap in here
-        components = [self.name,':'] + [unicode(component) for component in components]
+        components = [self.solr_field_name,':'] + [unicode(component) for component in components]
         return ''.join(components)
 
     def __gt__(self, other):
@@ -40,7 +40,7 @@ class Field(SolrSchemaField):
         return self._op(other)
 
     def __pow__(self, power):
-        return '%s^%s' % (self.name, power)
+        return '%s^%s' % (self.solr_field_name, power)
 
     def between(self, lower, upper):
         return self._op('[', lower, ' TO ', upper, ']')

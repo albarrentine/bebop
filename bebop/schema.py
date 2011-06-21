@@ -395,14 +395,14 @@ class SolrFieldTypes(BaseSolrXMLElement):
 
 class SolrSchemaField(BaseSolrXMLElement):
     tag = 'field'
-    required = dict([(attr, attr)
-                    for attr in ['name', 'type']])
+    required = {'solr_field_name': 'name',
+                'solr_field_type': 'type'}
     options = ['indexed', 'stored', 'multi_valued', 'sort_missing_last',
                'sort_missing_first', 'compressed', 'term_vectors', 'omit_norms',
                'position_increment_gap']
 
-    def __init__(self, name, type):
-        super(SolrSchemaField, self).__init__(name=name, type=type.type_name)
+    def __init__(self, solr_field_name, solr_field_type):
+        super(SolrSchemaField, self).__init__(solr_field_name=solr_field_name, solr_field_type=solr_field_type.type_name)
 
 
 class SolrSchemaFields(BaseSolrXMLElement):

@@ -21,7 +21,7 @@ def SearchIndex(name, config=StandardSolrConfig, generate_schema=True):
         #    raise Exception('Class "%s" must have attribute _target' % cls.__name__)
         fields = filter(lambda attr: isinstance(getattr(cls,attr), Field), dir(cls))
         cls._solr_fields = fields
-        cls._models_to_solr = dict([(field, getattr(cls, field).name) for field in fields])
+        cls._models_to_solr = dict([(field, getattr(cls, field).solr_field_name) for field in fields])
         cls._solr_to_models = dict([(v,k) for k,v in cls._models_to_solr.iteritems()])
 
         cls.solr_schema=None
@@ -30,7 +30,7 @@ def SearchIndex(name, config=StandardSolrConfig, generate_schema=True):
             schema_fields=[]
             for attr in fields:
                 schema_fields.append(getattr(cls, attr))
-                field_types.add(getattr(cls,attr)._type)
+                field_types.add(getattr(cls,attr)._solr_field_type)
 
         cls.solr_schema=SolrSchema(name=name,
                                   fields=SolrSchemaFields(*schema_fields),
