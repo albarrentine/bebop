@@ -24,10 +24,10 @@ class SolrConn(object):
         return self._solr.search(**query.params)
 
     def add(self, doc, commit=True):
-        self._solr.add(doc._to_solr_doc(),commit=commit)
+        self._solr.add(doc._to_dict(),commit=commit)
 
-    def batch_add(self, docs, commit=False):
-        self._solr.add([doc._to_solr_doc() for doc in docs], commit=commit)
+    def add_all(self, docs, commit=False):
+        self._solr.add([doc._to_dict() for doc in docs], commit=commit)
 
     def commit(self):
         self._solr.commit()
