@@ -34,7 +34,7 @@ class SolrQuery(object):
         if not self.params_joined:
             self.params=MultiDict((k,self.separators[k].join(v) if k in self.separators else v) for k,v in self.params.iteritems())
             self.params_joined = True
-        return [handler(obj) for obj in self.conn.search(**self.params)]
+        return [handler(obj) for obj in self._execute_search()]
 
     def query(self, query):
         self.params.update(q=query)
@@ -72,6 +72,10 @@ class SolrQuery(object):
         self.params['start'] = offset
         return self
 
+    def boost(self, field):
+        self.params['bf'] = SolrQuery._name_or_val(field)
+        return self
+
     @staticmethod
     def _name_or_val(arg):
         return arg.solr_field_name if hasattr(arg, 'solr_field_name') else arg
@@ -85,6 +89,11 @@ class SolrQuery(object):
     @join_with_separator(separators, 'qf', ' ')
     def queried_fields(self, *fields):
         self._add_items_to_key('qf', *fields)
+        return self
+
+    def dismax_of(self, *fields):
+        self.def_type('dismax')
+        self.queried_fields(*fields)
         return self
 
     @join_with_separator(separators, 'fl', ',')
@@ -105,19 +114,5 @@ class SolrQuery(object):
     def target_model(self, model, proxy):
         pass
 
-    def _do_search(self):
-        return self.connection.search(**self.params)
-
-    def all(self):
-        resp = self._do_search()
-
-    def first(self):
-        self.params['rows'] = 1
-        resp = self._do_search()
-
-    def scalar(self):
-        self.params['rows'] = 1
-        resp = self._do_search()
-
-    def scalar_all(self):
-        resp = self._do_search()
+    def _execute_search(self):
+        return self.conn.search(self)
