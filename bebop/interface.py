@@ -1,5 +1,6 @@
 from connection import SolrConn
 from query import SolrQuery
+from data_import import DBAPIBatchIndexer
 from config import generate_multicore_schema, generate_config
 from schema import generate_schema
 from util import NotGiven
@@ -15,6 +16,9 @@ class Solr(object):
     def __init__(self, connections = NotGiven):
         self.connections = {} if connections is NotGiven else connections
         self.indexes = {}
+
+    def add_connection(self, url, id='main'):
+        self.connections[id] = SolrConn(url)
 
     def autodiscover_indexes(self, *packages):
         for package in packages:
@@ -36,13 +40,18 @@ class Solr(object):
             generate_schema(index.solr_schema)
             generate_config(index.solr_config)
 
-    def add_connection(self, conn, id='main'):
-        self.connections[id] = conn
-
-    def search(self, index=None):
-        if hasattr(index, '__solr_index__'):
-            index = index.__solr_index__
+    def _validate_index(self, obj):
+        index = getattr(obj, '__solr_index__', None) or obj
         if index not in self.indexes:
             raise BebopConfigurationException("Tried to search index '%r' which is not in the configuration")
+        return index
+
+    def search(self, index=None):
+        index = self._validate_index(index)
         return SolrQuery(connections=self.connections,
                          index=self.indexes[index])
+
+    def batch_index(self, index, conn_id='main', indexer=DBAPIBatchIndexer):
+        index = self._validate_index(index)
+        return indexer(self.connections[conn_id],
+                        index=self.indexes[index])
