@@ -7,13 +7,14 @@ class TestGenerateSchema(TestCase):
         schema = SolrSchema('test_schema',
                             field_types=SolrFieldTypes(Integer, Text),
                             fields = SolrSchemaFields(
-                                Field('foo', Text),
-                                DocumentId('bar', Integer)
+                                model.TextField('foo'),
+                                model.IntegerField('bar', document_id = True)
                                 )
                             )
-        generate_schema(schema, path=filename)
+
+        schema.generate(path=filename)
 
         generated_file = open(filename).read()
         test_file = open('./test/test_schema.xml').read()
-        
+
         self.assertEqual(generated_file, test_file)

@@ -5,6 +5,7 @@ Created on Feb 14, 2011
 '''
 
 from bebop import *
+from bebop import model
 import bebop.test
 from unittest import TestCase
 
@@ -20,16 +21,15 @@ class BarDB(object):
 
 @SearchIndex('foo')
 class Foo(object):
-    id = DocumentId('id', Integer, model_attr='id')
-    name = Field('name', Title, model_attr='name')
+    id = model.IntegerField('id', model_attr='id', document_id=True)
+    name = model.TitleField('name', model_attr='name')
 
 @SearchIndex('bar', config=DismaxSolrConfig)
 class Bar(object):
-    id = DocumentId('id', Integer, model_attr='id')
-    name = Field('name', Title, model_attr='name')
+    id = model.IntegerField('id', model_attr='id', document_id=True)
+    name = model.TitleField('name', model_attr='name')
 
 class TestModel(TestCase):
-
     def test_internals(self):
         self.assertEquals(Foo.__solr_index__, 'foo')
         self.assertEquals(Foo._solr_fields, ['id', 'name'])
