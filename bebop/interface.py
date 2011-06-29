@@ -2,7 +2,6 @@ from connection import SolrConn
 from query import SolrQuery
 from data_import import DBAPIBatchIndexer
 from config import generate_multicore_schema, generate_config
-from schema import generate_schema
 from util import NotGiven
 import inspect
 import os
@@ -37,7 +36,7 @@ class Solr(object):
             generate_multicore_schema(core_admin_conf, **self.indexes)
         else:
             index = self.indexes.values()[0]
-            generate_schema(index.solr_schema)
+            index.solr_schema.generate()
             generate_config(index.solr_config)
 
     def _validate_index(self, obj):
