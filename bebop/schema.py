@@ -5,6 +5,7 @@ Created on Jan 15, 2011
 '''
 
 import os
+from exception import SolrTypeError
 from util import *
 from collections import deque
 
@@ -198,6 +199,12 @@ class WordDelimiterFilter(Filter):
                 'split_on_case_change', 'split_on_numerics',
                 'stem_english_possessive', 'preserve_original']
 
+    def __init__(self, **kw):
+        options = set(self.options)
+        for k in kw.keys():
+            if k in options:
+                setattr(self, k, str(kw.pop(k)))
+
 class EnglishPorterFilter(Filter):
     solr_class = 'solr.EnglishPorterFilterFactory'
     options = ['protected']
@@ -273,7 +280,7 @@ class BaseText(SolrFieldType):
     solr_class = 'solr.TextField'
     position_increment_gap = 100
 
-class SimpleTokenizedText(BaseText):
+class SimpleText(BaseText):
     type_name = 'text_ws'
     anaylzer = Analyzer(tokenizer=WhitespaceTokenizer)
 
@@ -379,6 +386,23 @@ class Ignored(SolrFieldType):
     indexed = False
     stored = False
 
+# Geo filterable types
+
+class Point(SolrFieldType):
+    type_name = 'point'
+    solr_class = 'solr.PointType'
+    dimensions = '2'
+    sub_field_suffix = '_d'
+
+class GeoPoint(SolrFieldType):
+    type_name = 'location'
+    solr_class = 'solr.LatLonType'
+    sub_field_suffix = '_coordinate'
+
+class GeoHash(SolrFieldType):
+    type_name = 'geohash'
+    solr_class = 'solr.GeoHashField'
+
 class SolrFieldTypes(BaseSolrXMLElement):
     tag = 'types'
 
@@ -386,7 +410,7 @@ class SolrFieldTypes(BaseSolrXMLElement):
              Integer, Long, Float, Double,
              SortableInteger, SortableLong,
              SortableFloat, SortableDouble,
-             Date, Random, SimpleTokenizedText,
+             Date, Random, SimpleText,
              Text, TextTight, Title, TextSpell,
              TextSpellPhrase, AlphaOnlySort, Ignored)
 
@@ -401,7 +425,9 @@ class SolrSchemaField(BaseSolrXMLElement):
                'sort_missing_first', 'compressed', 'term_vectors', 'omit_norms',
                'position_increment_gap']
 
-    def __init__(self, solr_field_name, solr_field_type):
+    def __init__(self, solr_field_name, solr_field_type=NotGiven):
+        if solr_field_type is NotGiven:
+            raise SolrTypeError('No Solr type was defined for field "%s"' % solr_field_name)
         super(SolrSchemaField, self).__init__(solr_field_name=solr_field_name, solr_field_type=solr_field_type.type_name)
 
 
@@ -438,8 +464,8 @@ class SolrSchema(BaseSolrXMLElement):
         super(SolrSchema, self).__init__(**kw)
 
 
-def generate_schema(schema, path = 'solr/conf/schema.xml'):
-    ensure_dir(os.path.dirname(path))
+    def generate(self, path = 'solr/conf/schema.xml'):
+        ensure_dir(os.path.dirname(path))
 
-    tree = etree.ElementTree(schema.to_xml())
-    tree.write(path, encoding='utf-8', xml_declaration=True, pretty_print=True)
+        tree = etree.ElementTree(self.to_xml())
+        tree.write(path, encoding='utf-8', xml_declaration=True, pretty_print=True)
