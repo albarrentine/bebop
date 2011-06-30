@@ -7,12 +7,12 @@ except ImportError:
 
 setup(
     name='bebop',
-    version='0.0.1dev',
-    description='Lightweight Solr object mapping and schema generation without all the XML',
+    version='0.0.1',
+    description='Solr object mapping and schema generation without all the XML',
     author='Al Barrentine',
     url='http://www.github.com/thatdatabaseguy/bebop',
     install_requires=[
-        "pysolr",
+        "pysolr>=2.0.15",
         "lxml>=2.2.3",
     ],
     packages=['bebop'],
