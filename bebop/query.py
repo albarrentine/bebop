@@ -7,9 +7,6 @@ Created on Jun 16, 2011
 from schema import SolrSchemaField, UniqueKey
 from util import NotGiven, MultiDict
 
-def noop(response):
-    return response
-
 def join_with_separator(separators, param, separator):
     separators[param] = separator
     def _with_func(f):
@@ -29,12 +26,15 @@ class SolrQuery(object):
     def use_index(self, index):
         self.index = index
 
-    def execute(self, handler=noop, conn='main'):
+    def handle_row(self, row):
+        return self.index(row)
+
+    def execute(self, handler=handle_row, conn='main'):
         #self.conn = self.connections[conn]
         if not self.params_joined:
             self.params=MultiDict((k,self.separators[k].join(v) if k in self.separators else v) for k,v in self.params.iteritems())
             self.params_joined = True
-        return [handler(obj) for obj in self._execute_search()]
+        return [handler(self, obj) for obj in self._execute_search()]
 
     def query(self, query):
         self.params.update(q=query)
