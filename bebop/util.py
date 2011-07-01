@@ -178,7 +178,7 @@ def single_value_tag(tag, value):
 class SingleValueTagsMixin(BaseSolrXMLElement):
     def __init__(self, camelcase=True, **kw):
         for attr, val in kw.iteritems():
-            if val is None:
+            if val is NotGiven:
                 continue
             if hasattr(val, 'to_xml'):
                 # Ignore XML elements so they can be mixed in freely
@@ -190,6 +190,13 @@ class SingleValueTagsMixin(BaseSolrXMLElement):
             setattr(self, attr, element)
 
         super(SingleValueTagsMixin, self).__init__()
+
+class NamedSingleValueTagsMixin(SingleValueTagsMixin):
+    def __init__(self, **kw):
+        for attr, value in kw.iteritems():
+            value.name = attr
+        super(NamedSingleValueTagsMixin, self).__init__(**kw)
+
 
 # OrderedSet, generally useful collection
 
