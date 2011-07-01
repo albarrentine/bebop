@@ -36,11 +36,11 @@ class TestModel(TestCase):
 
     def test_equals(self):
         clause = Foo.name == 'blah'
-        self.assertEquals(clause, "name:blah")
+        self.assertEquals(unicode(clause), "name:blah")
 
     def test_boolean_clause(self):
         clause = and_(Foo.id > 5, or_(Foo.name=='blah', Foo.name=='blee'))
-        self.assertEquals(clause, "(id:[5 TO *] AND (name:blah OR name:blee))")
+        self.assertEquals(unicode(clause), u"(id:[5 TO *] AND (name:blah OR name:blee))")
 
     def test_search_url(self):
         solr = Solr()
