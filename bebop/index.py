@@ -8,11 +8,10 @@ from schema import SolrSchema, SolrSchemaFields, SolrFieldTypes
 from model import Field
 from config import StandardSolrConfig
 
-def has_own_constructor(cls):
-    # There's also this awesome black magic-ish statement:
-    # sum([cls.__init__ == base.__init__ for base in cls.__mro__[1:]]) == 0
-    # but I'm not going to mess around with people's inheritance
-    return hasattr(cls, '__init__') and cls.__init__ != object.__init__
+def set_if_not_defined(cls, attr, val):
+    if hasattr(cls, attr) and getattr(cls, attr) != getattr(object, attr):
+        setattr(cls, attr, val)
+
 
 def SearchIndex(name, config=StandardSolrConfig, generate_schema=True):
     def _to_dict(self):
@@ -27,6 +26,10 @@ def SearchIndex(name, config=StandardSolrConfig, generate_schema=True):
         for attr, value in arg_dict.iteritems():
             if attr in self._solr_fields:
                 setattr(self, attr, value)
+
+    def default_getattribute(self, attr_name):
+        attr = object.__getattribute__(self, attr_name)
+        return attr if not isinstance(attr, Field) else None
 
     def _Index(cls):
         cls.__solr_index__ = name
@@ -54,7 +57,8 @@ def SearchIndex(name, config=StandardSolrConfig, generate_schema=True):
         cls._to_dict = _to_dict
         cls._create_target_model = _create_target_model
 
-        if not has_own_constructor(cls) :
-            cls.__init__ = default_constructor
+        set_if_not_defined(cls, '__init__', default_constructor)
+        set_if_not_defined(cls, '__getattribute__', default_getattribute)
+
         return cls
     return _Index
