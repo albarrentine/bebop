@@ -106,7 +106,7 @@ def _to_xml(node):
             elif attr in obj.optional:
                 options[obj.optional[attr]] = _stringify(value)
             elif attr=='value':
-                element.text=value
+                element.text=_stringify(value)
             # For referencing elements without throwing them in the schema, use an underscore
             elif attr.startswith('_'):
                 continue
