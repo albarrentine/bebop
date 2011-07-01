@@ -29,20 +29,20 @@ class BaseConfigElement(BaseSolrXMLElement):
 class MainIndex(SingleValueTagsMixin):
     tag = 'mainIndex'
     def __init__(self,
-                 use_compound_file=None,
-                 ram_buffer_size_mb=None,
-                 merge_factor=None,
-                 unlock_on_startup=None,
-                 reopen_readers=None,
-                 max_buffered_docs=None,
-                 max_merge_docs=None,
-                 max_field_length=None):
+                 use_compound_file=NotGiven,
+                 ram_buffer_size_mb=NotGiven,
+                 merge_factor=NotGiven,
+                 unlock_on_startup=NotGiven,
+                 reopen_readers=NotGiven,
+                 max_buffered_docs=NotGiven,
+                 max_merge_docs=NotGiven,
+                 max_field_length=NotGiven):
         SingleValueTagsMixin.__init__(locals().pop('self'),**locals())
 
 class AutoCommit(SingleValueTagsMixin):
     def __init__(self,
-                 max_docs = None,
-                 max_time = None
+                 max_docs = NotGiven,
+                 max_time = NotGiven
                  ):
         SingleValueTagsMixin.__init__(locals().pop('self'),**locals())
 
@@ -67,25 +67,52 @@ class ConcurrentMergeScheduler(MergeScheduler):
 class SerialMergeScheduler(MergeScheduler):
     solr_class = "org.apache.lucene.index.SerialMergeScheduler"
 
-class Str(SingleValueTagsMixin):
-    tag = 'str'
-    required={'name': 'name'}
 
-class Int(SingleValueTagsMixin):
+class GenericTag(BaseSolrXMLElement):
+    tag = None
+    options = ['name']
+    def __init__(self, val):
+        self.value = val
+        super(GenericTag, self).__init__()
+
+class StrTag(GenericTag):
+    tag = 'str'
+
+class IntTag(GenericTag):
     tag = 'int'
-    required = {'name': 'name'}
+
+class LongTag(GenericTag):
+    tag = 'long'
+
+class FloatTag(GenericTag):
+    tag = 'float'
+
+class DoubleTag(GenericTag):
+    tag = 'double'
+
+class BoolTag(GenericTag):
+    tag = 'bool'
+
+class DocTag(NamedSingleValueTagsMixin):
+    tag = 'doc'
+
+class ListTag(NamedSingleValueTagsMixin):
+    tag = 'lst'
+
+class ArrayTag(SingleValueTagsMixin):
+    tag = 'arr'
 
 class IndexDefaults(SingleValueTagsMixin):
     def __init__(self,
-                 use_compound_file=None,
-                 merge_factor=None,
-                 max_buffered_docs=None,
-                 ram_buffer_size=None,
-                 max_field_length=None,
-                 write_lock_timeout=None,
-                 commit_lock_timout=None,
-                 lock_type=None,
-                 term_index_interval=None
+                 use_compound_file=NotGiven,
+                 merge_factor=NotGiven,
+                 max_buffered_docs=NotGiven,
+                 ram_buffer_size=NotGiven,
+                 max_field_length=NotGiven,
+                 write_lock_timeout=NotGiven,
+                 commit_lock_timout=NotGiven,
+                 lock_type=NotGiven,
+                 term_index_interval=NotGiven
               ):
         SingleValueTagsMixin.__init__(locals().pop('self'),**locals())
 
@@ -130,7 +157,7 @@ class LogUpdateProcessor(UpdateRequestProcessor):
 class SolrConfig(SingleValueTagsMixin):
     tag = 'config'
     def __init__(self, **kw):
-        SingleValueTagsMixin.__init__(self, **kw)
+        super(SolrConfig, self).__init__(self, **kw)
 
 StandardSolrConfig = SolrConfig(lucene_match_version='LUCENE_40',
                                 update_handler = DirectUpdateHandler,
