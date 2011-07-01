@@ -41,11 +41,11 @@ class Field(schema.SolrSchemaField):
     def __pow__(self, power):
         return LuceneQuery(self) ** power
 
-    def between(self, lower, upper):
-        return LuceneQuery(self).between(lower, upper)
+    def between(self, lower, upper, inclusive_lower=True, inclusive_upper=True):
+        return LuceneQuery(self, '[' if inclusive_lower else '{', lower, ' TO ', upper, ']' if inclusive_upper else '}')
 
     def exists(self):
-        return LuceneQuery(self, '*')
+        return LuceneQuery(self, '[* TO *]')
 
     def __unicode__(self):
         return self.solr_field_name
