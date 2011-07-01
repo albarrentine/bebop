@@ -5,6 +5,7 @@ Created on Jun 20, 2011
 '''
 
 import schema
+from query import LuceneQuery
 
 class Field(schema.SolrSchemaField):
     def __init__(self, name, multi_valued=None, document_id=False, indexed=None, stored=None, model_attr=None, **kw):
@@ -22,40 +23,38 @@ class Field(schema.SolrSchemaField):
         if model_attr:
             self._model_attr = model_attr
 
-    def _op(self, *components):
-        # TODO: probably need some serialization crap in here
-        components = [self.solr_field_name,':'] + [unicode(component) for component in components]
-        return ''.join(components)
-
     def __gt__(self, other):
-        return self._op('[',other,' TO *]')
+        return LuceneQuery(self, '[', other, ' TO *]')
 
     def __lt__(self, other):
-        return self._op('[* TO ',other,']')
+        return LuceneQuery(self, '[* TO ', other, ']')
 
     def __gte__(self, other):
-        return self._op('[',other,' TO *]')
+        return LuceneQuery(self, '{', other, ' TO *}')
 
     def __lte__(self, other):
-        return self._op('[* TO ',other,']')
+        return LuceneQuery(self, '{* TO ', other, '}')
 
     def __eq__(self, other):
-        return self._op(other)
+        return LuceneQuery(self, other)
 
     def __pow__(self, power):
-        return '%s^%s' % (self.solr_field_name, power)
+        return LuceneQuery(self) ** power
 
     def between(self, lower, upper):
-        return self._op('[', lower, ' TO ', upper, ']')
+        return LuceneQuery(self).between(lower, upper)
 
     def exists(self):
-        return self._op('[* TO *]')
+        return LuceneQuery(self, '*')
+
+    def __unicode__(self):
+        return self.solr_field_name
 
 def and_(*args):
-    return '(' + ' AND '.join(args) + ')'
+    return '(' + ' AND '.join([unicode(arg) for arg in args]) + ')'
 
 def or_(*args):
-    return '(' + ' OR '.join(args) + ')'
+    return '(' + ' OR '.join([unicode(arg) for arg in args]) + ')'
 
 
 class StrField(Field):

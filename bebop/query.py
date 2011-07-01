@@ -13,6 +13,27 @@ def join_with_separator(separators, param, separator):
         return f
     return _with_func
 
+class LuceneQuery(object):
+    def __init__(self, field, *args, **kw):
+        self.field = field
+        self.components = args
+
+    def __pow__(self, power):
+        self.components.extend(['^', power])
+        return self
+
+    def between(self, lower, upper):
+        self.components()
+        return LuceneQuery(self).between(lower, upper)
+
+    def fuzzy(self, factor=NotGiven):
+        self.components.append('~')
+        if factor != NotGiven:
+            self.components.append(factor)
+
+    def __unicode__(self):
+        return u''.join([unicode(self.field), u':'] + [unicode(component) for component in self.components])
+
 class SolrQuery(object):
     separators = {}
 
@@ -30,21 +51,24 @@ class SolrQuery(object):
         return self.index(row)
 
     def execute(self, handler=handle_row, conn='main'):
-        #self.conn = self.connections[conn]
         if not self.params_joined:
-            self.params=MultiDict((k,self.separators[k].join(v) if k in self.separators else v) for k,v in self.params.iteritems())
+            self.params=MultiDict((k,self.separators[k].join([unicode(v) for v in val]) if k in self.separators else unicode(val)) for k,val in self.params.iteritems())
             self.params_joined = True
         return [handler(self, obj) for obj in self._execute_search()]
 
     def query(self, query):
-        self.params.update(q=query)
+        self.params.update(q=unicode(query))
         return self
 
     def filter(self, filters):
         if hasattr(filters, '__iter__'):
-            [self.params.update(fq=filter) for filter in filters]
+            [self.params.update(fq=unicode(filter)) for filter in filters]
         else:
-            self.params.update(fq=filters)
+            self.params.update(fq=unicode(filters))
+        return self
+
+    def default_operator(self, op):
+        self.params['q.op'] = op
         return self
 
     def default_field(self, field):
@@ -53,6 +77,10 @@ class SolrQuery(object):
 
     def def_type(self, type):
         self.params['defType'] = type
+        return self
+
+    def tie(self, tie):
+        self.params['tie'] = tie
         return self
 
     def query_type(self, qt):
@@ -92,8 +120,10 @@ class SolrQuery(object):
         return self
 
     def dismax_of(self, *fields):
+        # Wrapper for queries using the dismax query parser
         self.def_type('dismax')
         self.queried_fields(*fields)
+        self.tie(0.1)
         return self
 
     @join_with_separator(separators, 'fl', ',')
