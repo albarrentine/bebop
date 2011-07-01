@@ -69,7 +69,7 @@ class BooleanField(Field):
 class DateField(Field):
     solr_field_type = schema.Date
 
-class Random(Field):
+class RandomField(Field):
     solr_field_type = schema.Random
 
 class SortableOptionField(Field):
