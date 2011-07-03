@@ -13,18 +13,71 @@ def join_with_separator(separators, param, separator):
         return f
     return _with_func
 
+
+class SolrFunction(object):
+    def __init__(self, name):
+        self.name = name
+        self.args = []
+
+    def __unicode__(self):
+        return ''.join([unicode(self.name), '(', ', '.join([unicode(arg) for arg in self.args]), ')'])
+
+    def __call__(self, *args, **kwargs):
+        self.args = args
+        return unicode(self)
+
+class _SolrFunctionGenerator(object):
+    """
+    Inspired by SQLAlchemy
+
+    Since Solr functions may be any random method you wrote
+    in Java as well as the standard crop of Solr functions, bebop
+    will not assume what the functions you're calling might be.
+
+    End product for now is just a string, and it assumes that
+    every argument to the function supports the __unicode__ method
+
+    """
+    def __getattr__(self, name):
+        if name.startswith('_'):
+            try:
+                return self.__dict__[name]
+            except KeyError:
+                raise AttributeError
+        # Use a trailing underscore for Python reserved words
+        # contrived : func.class_(MyIndex.foo)
+        elif name.endswith('_'):
+            name = name[:-1]
+        return SolrFunction(name)
+
+# func.div(func.log(MyIndex.field), func.log(2)) becomes 'div(log(field), log(2))'
+func = _SolrFunctionGenerator()
+
+class SolrResult(object):
+    pass
+
 class LuceneQuery(object):
-    def __init__(self, field, *args, **kw):
-        self.field = field
+    MANDATORY = 'mandatory'
+    PROHIBITED = 'prohibited'
+    OPTIONAL = 'optional'
+
+    def __init__(self, field=NotGiven, *args, **kw):
+        if field is NotGiven:
+            word, args = args[0], args[1:]
+        else:
+            self.field = field
         self.components = args
+        self.required = LuceneQuery.OPTIONAL
 
     def __pow__(self, power):
         self.components.extend(['^', power])
         return self
 
-    def between(self, lower, upper):
-        self.components()
-        return LuceneQuery(self).between(lower, upper)
+    def require(self):
+        self.required = LuceneQuery.MANDATORY
+
+    def negate(self):
+        self.required = LuceneQuery.PROHIBITED
 
     def fuzzy(self, factor=NotGiven):
         self.components.append('~')
@@ -33,6 +86,7 @@ class LuceneQuery(object):
 
     def __unicode__(self):
         return u''.join([unicode(self.field), u':'] + [unicode(component) for component in self.components])
+
 
 class SolrQuery(object):
     separators = {}
@@ -100,9 +154,26 @@ class SolrQuery(object):
         self.params['start'] = offset
         return self
 
-    def boost(self, field):
-        self.params['bf'] = SolrQuery._name_or_val(field)
+    @join_with_separator(separators, 'bf', ' ')
+    def boost(self, *fields):
+        self._add_items_to_key('bf', *fields)
         return self
+
+    @join_with_separator(separators, 'pf', ' ')
+    def phrase_boost(self, *fields):
+        self._add_items_to_key('pf', *fields)
+        return self
+
+    def query_slop(self, slop):
+        self.params['qs'] = slop
+        return self
+
+    def phrase_slop(self, slop):
+        self.params['ps'] = slop
+        return self
+
+    def boost_query(self, q):
+        self.params.update(bq=unicode(q))
 
     @staticmethod
     def _name_or_val(arg):
@@ -136,13 +207,28 @@ class SolrQuery(object):
         self._add_items_to_key('sort', *args)
         return self
 
+    def indent(self, indent):
+        self.params['indent']=indent
+        return self
+
+    def debug(self, debug):
+        self.params['debugQuery'] = debug
+        return self
+
+    def echo_handler(self, echo):
+        self.params['echoHandler'] = echo
+        return self
+
+    def echo_params(self, echo):
+        self.params['echoParams'] = echo
+        return self
 
 
     #def response_format(self, format):
     #    self.params['wt'] = format
 
-    def target_model(self, model, proxy):
-        pass
+    #def target_model(self, model, proxy):
+    #    pass
 
     def _execute_search(self):
         return self.conn.search(self)
