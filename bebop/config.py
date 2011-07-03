@@ -98,9 +98,11 @@ class DocTag(NamedSingleValueTagsMixin):
 
 class ListTag(NamedSingleValueTagsMixin):
     tag = 'lst'
+    options = ['name']
 
-class ArrayTag(SingleValueTagsMixin):
+class ArrayTag(SingleValueTagsMixin, GenericTag):
     tag = 'arr'
+    options = ['name']
 
 class IndexDefaults(SingleValueTagsMixin):
     def __init__(self,
