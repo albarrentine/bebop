@@ -9,7 +9,7 @@ from model import Field
 from config import StandardSolrConfig
 
 def set_if_not_defined(cls, attr, val):
-    if hasattr(cls, attr) and getattr(cls, attr) != getattr(object, attr):
+    if not hasattr(cls, attr) or getattr(cls, attr) == getattr(object, attr):
         setattr(cls, attr, val)
 
 
