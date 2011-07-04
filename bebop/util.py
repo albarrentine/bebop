@@ -47,6 +47,12 @@ def to_camelcase(s):
     return ''.join([token.title() if i > 0 else token.lower()
                     for i, token in enumerate(s.split('_'))])
 
+def join_with_separator(separators, param, separator):
+    separators[param] = separator
+    def _with_func(f):
+        return f
+    return _with_func
+
 @memoize
 def _stringify(obj):
     # TODO: write your own PyObject > string conversion

@@ -1,77 +1,12 @@
-'''
-Created on Jun 16, 2011
+"""Defines all Solr and Lucene query expressions.
 
-@author: al
-'''
+
+"""
 
 from schema import SolrSchemaField, UniqueKey
-from util import NotGiven, MultiDict
+from util import NotGiven, MultiDict, join_with_separator
 import itertools
 from functools import partial
-
-def join_with_separator(separators, param, separator):
-    separators[param] = separator
-    def _with_func(f):
-        return f
-    return _with_func
-
-
-class SolrFunction(object):
-    def __init__(self, name):
-        self.name = name
-        self.args = []
-
-    def __unicode__(self):
-        return ''.join([unicode(self.name), '(', ', '.join([unicode(arg) for arg in self.args]), ')'])
-
-    def __pow__(self, power):
-        return ''.join([unicode(self), '^', power])
-
-    def __call__(self, *args, **kwargs):
-        self.args = args
-        return unicode(self)
-
-class _SolrFunctionGenerator(object):
-    """
-    Inspired by SQLAlchemy
-
-    Since Solr functions may be any random method you wrote
-    in Java as well as the standard crop of Solr functions, bebop
-    will not assume what the functions you're calling might be.
-
-    End product for now is just a string, and it assumes that
-    every argument to the function supports the __unicode__ method
-
-    """
-    def __getattr__(self, name):
-        if name.startswith('_'):
-            try:
-                return self.__dict__[name]
-            except KeyError:
-                raise AttributeError
-        # Use a trailing underscore for Python reserved words
-        # contrived : func.class_(MyIndex.foo)
-        elif name.endswith('_'):
-            name = name[:-1]
-        return SolrFunction(name)
-
-# func.div(func.log(MyIndex.field), func.log(2)) becomes 'div(log(field), log(2))'
-func = _SolrFunctionGenerator()
-
-class SolrResult(object):
-    """ Currently just a wrapper for pysolr result """
-    def __init__(self, res, handler):
-        self.docs = res.docs
-        self.hits = res.hits
-        self.highlighting = res.highlighting
-        self.facets = res.facets
-        self.spellcheck = res.spellcheck
-        self.stats = res.stats
-
-        self.handle_row = handler
-
-    def __iter__(self):
-        return (self.handle_row(doc) for doc in self.docs)
 
 class LuceneQuery(object):
     MANDATORY = 'mandatory'
@@ -138,6 +73,62 @@ def asc(*fields):
 def desc(*fields):
     return ','.join([unicode(field) + '+desc' for field in fields])
 
+class SolrFunction(object):
+    """Solr function with given name and arguments"""
+    def __init__(self, name):
+        self.name = name
+        self.args = []
+
+    def __unicode__(self):
+        return ''.join([unicode(self.name), '(', ', '.join([unicode(arg) for arg in self.args]), ')'])
+
+    def __pow__(self, power):
+        return ''.join([unicode(self), '^', power])
+
+    def __call__(self, *args, **kwargs):
+        self.args = args
+        return unicode(self)
+
+class _SolrFunctionGenerator(object):
+    """Generates Solr function queries with arbitrary names based on __getattr__
+
+    Since Solr functions may be any random method you wrote
+    in Java as well as the standard crop of Solr functions, bebop
+    will not assume what the functions you're calling might be.
+
+    End product for now is just a string, and it assumes that
+    every argument to the function supports the __unicode__ method
+
+    """
+    def __getattr__(self, name):
+        if name.startswith('_'):
+            try:
+                return self.__dict__[name]
+            except KeyError:
+                raise AttributeError
+        # Use a trailing underscore for Python reserved words
+        # contrived : func.class_(MyIndex.foo)
+        elif name.endswith('_'):
+            name = name[:-1]
+        return SolrFunction(name)
+
+func = _SolrFunctionGenerator()
+
+class SolrResult(object):
+    """ Currently just a wrapper for pysolr result """
+    def __init__(self, res, handler):
+        self.docs = res.docs
+        self.hits = res.hits
+        self.highlighting = res.highlighting
+        self.facets = res.facets
+        self.spellcheck = res.spellcheck
+        self.stats = res.stats
+
+        self.handle_row = handler
+
+    def __iter__(self):
+        return (self.handle_row(doc) for doc in self.docs)
+
 class SolrQuery(object):
     separators = {}
 
@@ -173,7 +164,7 @@ class SolrQuery(object):
         return self
 
     def facet(self, field, method=NotGiven, missing_facet=NotGiven, prefix=NotGiven):
-        self.params['facet'] = True
+        self.params['facet'] = 'true'
         field_name = SolrQuery._name_or_val(field)
         self.params.add('facet.field', field_name)
         if method != NotGiven:
