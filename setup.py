@@ -2,8 +2,8 @@ from distutils.core import setup
 
 setup(
     name='bebop',
-    version='0.0.1dev',
-    description='Lightweight Solr object mapping and schema generation without all the XML',
+    version='0.0.2',
+    description='Solr object mapping and schema generation without all the XML',
     author='Al Barrentine',
     url='http://www.github.com/thatdatabaseguy/bebop',
     install_requires=[
