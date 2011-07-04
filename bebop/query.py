@@ -7,6 +7,7 @@ Created on Jun 16, 2011
 from schema import SolrSchemaField, UniqueKey
 from util import NotGiven, MultiDict
 import itertools
+from functools import partial
 
 def join_with_separator(separators, param, separator):
     separators[param] = separator
@@ -126,7 +127,7 @@ class LuceneQuery(object):
         if self.local_params:
             local_params = '{!' + ' '.join(['%s=%s' % (key, unicode(val)) for key, val in self.local_params.iteritems() ]) + '}'
         component_clause = ''.join([unicode(component) for component in self.components])
-        boost_factor = self.boost_factor or ''
+        boost_factor = '^%s' % self.boost_factor if self.boost_factor else ''
         return u''.join([local_params, modifier, field_clause, component_clause, boost_factor])
 
 Q = LuceneQuery
@@ -160,7 +161,7 @@ class SolrQuery(object):
         if not self.params_joined:
             self.params=self.join_params()
             self.params_joined = True
-        return SolrResult(self._execute_search(), handler=handler)
+        return SolrResult(self._execute_search(), handler=partial(handler, self))
 
 
     def query(self, query):
