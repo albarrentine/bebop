@@ -46,4 +46,4 @@ class TestModel(TestCase):
         solr = Solr()
         solr.autodiscover_indexes(bebop.test)
         q = solr.search(Bar).query('baz').filter(Bar.id>10).fields(Bar.name).limit(10).offset(5)
-        self.assertEquals(q.params.items(), [('q', 'baz'),('fq', 'id:[10 TO *]'),('fl', ['name']),('rows',10),('start',5)] )
+        self.assertEquals(q.join_params().items(), [('q', u'baz'),('fq', u'id:[10 TO *]'),('fl', u'name'),('rows',u'10'),('start',u'5')] )
