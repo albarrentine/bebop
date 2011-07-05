@@ -29,10 +29,10 @@ class Field(schema.SolrSchemaField):
     def __lt__(self, other):
         return LuceneQuery(self, '[* TO ', other, ']')
 
-    def __gte__(self, other):
+    def __ge__(self, other):
         return LuceneQuery(self, '{', other, ' TO *}')
 
-    def __lte__(self, other):
+    def __le__(self, other):
         return LuceneQuery(self, '{* TO ', other, '}')
 
     def __eq__(self, other):
