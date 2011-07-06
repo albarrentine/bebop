@@ -24,16 +24,16 @@ class Field(schema.SolrSchemaField):
             self._model_attr = model_attr
 
     def __gt__(self, other):
-        return LuceneQuery(self, '[', other, ' TO *]')
-
-    def __lt__(self, other):
-        return LuceneQuery(self, '[* TO ', other, ']')
-
-    def __ge__(self, other):
         return LuceneQuery(self, '{', other, ' TO *}')
 
-    def __le__(self, other):
+    def __lt__(self, other):
         return LuceneQuery(self, '{* TO ', other, '}')
+
+    def __ge__(self, other):
+        return LuceneQuery(self, '[', other, ' TO *]')
+
+    def __le__(self, other):
+        return LuceneQuery(self, '[* TO ', other, ']')
 
     def __eq__(self, other):
         return LuceneQuery(self, other)
