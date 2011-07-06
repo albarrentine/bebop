@@ -28,12 +28,15 @@ class LuceneQuery(object):
         else:
             self.field = None
 
+        self.use_colon = True
         self.components = list(args)
         self.local_params = MultiDict()
         self.required = LuceneQuery.OPTIONAL
         self.boost_factor = None
 
     def __pow__(self, power):
+        if not self.components:
+            self.use_colon = False
         self.boost_factor = power
         return self
 
@@ -57,13 +60,14 @@ class LuceneQuery(object):
 
     def __unicode__(self):
         modifier = self.required_modifiers[self.required]
-        field_clause = '' if not self.field else unicode(self.field) + ':'
+        field_clause = '' if not self.field else unicode(self.field)
+        separator = ':' if self.use_colon else ''
         local_params = ''
         if self.local_params:
             local_params = '{!' + ' '.join(['%s=%s' % (key, unicode(val)) for key, val in self.local_params.iteritems() ]) + '}'
         component_clause = ''.join([unicode(component) for component in self.components])
         boost_factor = '^%s' % self.boost_factor if self.boost_factor else ''
-        return u''.join([local_params, modifier, field_clause, component_clause, boost_factor])
+        return u''.join([local_params, modifier, field_clause, separator, component_clause, boost_factor])
 
 Q = LuceneQuery
 
@@ -120,6 +124,12 @@ class SolrFacets(dict):
                                    if hasattr(field_facets, '__iter__') else field_facets) for field, field_facets in kw.iteritems())
         dict.__init__(self, **new_kw)
 
+    def __getitem__(self, attr):
+        if hasattr(attr, 'solr_field_name'):
+            return dict.__getitem__(self, attr.solr_field_name)
+        else:
+            return dict.__getitem__(self, unicode(attr))
+
 class SolrResult(object):
     """ Currently just a wrapper for pysolr result """
     def __init__(self, res, handler):
@@ -172,12 +182,13 @@ class SolrQuery(object):
         [self.params.add('fq', filter) for filter in filters]
         return self
 
-    def facet(self, field, method=NotGiven, missing_facet=NotGiven, min_count=1):
+    def facet(self, field, method='enum', missing_facet=NotGiven, sort=NotGiven, min_count=1):
         self.params['facet'] = 'true'
         field_name = SolrQuery._name_or_val(field)
         self.params.add('facet.field', field_name)
-        if method != NotGiven:
-            self.params['f.%s.facet.method' % field_name] = method
+        self.params['f.%s.facet.method' % field_name] = method
+        if sort != NotGiven:
+            self.params['f.%s.facet.sort' % field_name] = sort
         if missing_facet != NotGiven:
             self.params['f.%s.facet.missing' % field_name] = missing_facet
         self.params['f.%s.facet.mincount' % field_name] = min_count
