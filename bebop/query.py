@@ -4,7 +4,7 @@
 """
 
 from schema import SolrSchemaField, UniqueKey
-from util import NotGiven, MultiDict, join_with_separator
+from util import NotGiven, MultiDict, OrderedDict, join_with_separator
 import itertools
 from functools import partial
 
@@ -114,13 +114,22 @@ class _SolrFunctionGenerator(object):
 
 func = _SolrFunctionGenerator()
 
+class SolrFacets(dict):
+    def __init__(self, **kw):
+        new_kw = dict((field, OrderedDict((facet, field_facets[idx*2+1]) for idx, facet in enumerate(field_facets[::2]))
+                                   if hasattr(field_facets, '__iter__') else field_facets) for field, field_facets in kw.iteritems())
+        dict.__init__(self, **new_kw)
+
 class SolrResult(object):
     """ Currently just a wrapper for pysolr result """
     def __init__(self, res, handler):
         self.docs = res.docs
         self.hits = res.hits
         self.highlighting = res.highlighting
-        self.facets = res.facets
+        self.facet_fields = SolrFacets(**(res.facets.get('facet_fields', {})))
+        self.facet_dates = SolrFacets(**(res.facets.get('facet_dates',{})))
+        self.facet_ranges = SolrFacets(**(res.facets.get('facet_ranges', {})))
+        self.facet_queries = SolrFacets(**(res.facets.get('facet_queries', {})))
         self.spellcheck = res.spellcheck
         self.stats = res.stats
 
@@ -163,7 +172,7 @@ class SolrQuery(object):
         [self.params.add('fq', filter) for filter in filters]
         return self
 
-    def facet(self, field, method=NotGiven, missing_facet=NotGiven, prefix=NotGiven):
+    def facet(self, field, method=NotGiven, missing_facet=NotGiven, min_count=1):
         self.params['facet'] = 'true'
         field_name = SolrQuery._name_or_val(field)
         self.params.add('facet.field', field_name)
@@ -171,12 +180,12 @@ class SolrQuery(object):
             self.params['f.%s.facet.method' % field_name] = method
         if missing_facet != NotGiven:
             self.params['f.%s.facet.missing' % field_name] = missing_facet
-        if prefix != NotGiven:
-            self.params['facet.prefix'] = prefix
+        self.params['f.%s.facet.mincount' % field_name] = min_count
         return self
 
     def facet_date(self, date_field, start_date=NotGiven, end_date=NotGiven,
                    gap=NotGiven, hard_end=NotGiven, other=NotGiven):
+        self.params['facet'] = 'true'
         field_name = SolrQuery._name_or_val(date_field)
         self.params.add('facet.date', field_name)
 
@@ -197,8 +206,9 @@ class SolrQuery(object):
 
         return self
 
-    def facet_query(self, query):
-        self.params.add('facet.query', query)
+    def facet_query(self, *queries):
+        self.params['facet'] = 'true'
+        [self.params.add('facet.query', query) for query in queries]
         return self
 
     def facet_prefix(self, field, prefix):
