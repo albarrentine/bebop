@@ -40,10 +40,10 @@ class TestModel(TestCase):
 
     def test_boolean_clause(self):
         clause = and_(Foo.id > 5, or_(Foo.name=='blah', Foo.name=='blee'))
-        self.assertEquals(unicode(clause), u"(id:[5 TO *] AND (name:blah OR name:blee))")
+        self.assertEquals(unicode(clause), u"(id:{5 TO *} AND (name:blah OR name:blee))")
 
     def test_search_url(self):
         solr = Solr()
         solr.autodiscover_indexes(bebop.test)
-        q = solr.search(Bar).query('baz').filter(Bar.id>10).fields(Bar.name).limit(10).offset(5)
+        q = solr.search(Bar).query('baz').filter(Bar.id>=10).fields(Bar.name).limit(10).offset(5)
         self.assertEquals(q.join_params().items(), [('q', u'baz'),('fq', u'id:[10 TO *]'),('fl', u'name'),('rows',u'10'),('start',u'5')] )
