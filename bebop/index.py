@@ -7,6 +7,7 @@ Created on Jan 21, 2011
 from schema import SolrSchema, SolrSchemaFields, SolrFieldTypes
 from model import Field
 from config import StandardSolrConfig
+from util import NotGiven
 
 def set_if_not_defined(cls, attr, val):
     if not hasattr(cls, attr) or getattr(cls, attr) == getattr(object, attr):
@@ -20,8 +21,8 @@ def SearchIndex(name, config=StandardSolrConfig, generate_schema=True):
     def _create_target_model(self):
         return self._target(**dict([(k, v) for k,v in self._solr_to_models.iteritems()]))
 
-    def default_constructor(self, obj=None, **kw):
-        arg_dict = obj if hasattr(obj, 'iteritems') else obj.__dict__
+    def default_constructor(self, obj=NotGiven, **kw):
+        arg_dict = obj if hasattr(obj, 'iteritems') else {}
         arg_dict.update(kw)
         for attr, value in arg_dict.iteritems():
             if attr in self._solr_fields:
