@@ -53,4 +53,4 @@ class Solr(object):
     def batch_index(self, index, conn_id='main', indexer=DBAPIBatchIndexer):
         index = self._validate_index(index)
         return indexer(self.connections[conn_id],
-                        index=self.indexes[index])
+                        solr_index=self.indexes[index])
