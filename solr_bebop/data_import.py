@@ -8,7 +8,7 @@ from util import NotGiven
 
 import logging
 
-log = logging.getLogger('bebop')
+log = logging.getLogger('solr_bebop')
 
 class BatchIndexer(object):
     COMMIT_PER_BATCH = 'batch'
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     import MySQLdb
     from MySQLdb import cursors
     import pysolr
-    from bebop.test.test_model import Foo
+    from solr_bebop.test.test_model import Foo
 
     solr_conn = pysolr.Solr('http://localhost:8983/solr')
     solr_conn.delete(q="*:*")
