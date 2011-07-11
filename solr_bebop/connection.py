@@ -49,6 +49,9 @@ class SolrConn(object):
     def commit(self):
         self._solr.commit()
 
+    def delete(self, query='*:*', commit=True):
+        self._solr.delete(q=query, commit=commit)
+
     def optimize(self):
         self._solr.optimize()
 
