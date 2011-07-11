@@ -35,6 +35,9 @@ class Field(schema.SolrSchemaField):
     def __le__(self, other):
         return LuceneQuery(self, '[* TO ', other, ']')
 
+    def __ne__(self, other):
+        return LuceneQuery(self, other).negate()
+
     def __eq__(self, other):
         return LuceneQuery(self, other)
 
