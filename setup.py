@@ -6,8 +6,8 @@ except ImportError:
     from setuptools import setup, find_packages
 
 setup(
-    name='solr_bebop',
-    version='0.0.3',
+    name='bebop',
+    version='0.0.4',
     description='Solr object mapping and schema generation without all the XML',
     author='Al Barrentine',
     url='http://www.github.com/thatdatabaseguy/bebop',
@@ -15,6 +15,6 @@ setup(
         "pysolr>=2.0.15",
         "lxml>=2.2.3",
     ],
-    packages=['solr_bebop'],
+    packages=['bebop'],
     
     )

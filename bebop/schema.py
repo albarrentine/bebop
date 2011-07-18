@@ -389,12 +389,14 @@ class Ignored(SolrFieldType):
 # Geo filterable types
 
 class Point(SolrFieldType):
+    options = SolrFieldType.options + ['dimensions', 'sub_field_suffix']
     type_name = 'point'
     solr_class = 'solr.PointType'
     dimensions = '2'
     sub_field_suffix = '_d'
 
 class GeoPoint(SolrFieldType):
+    options = SolrFieldType.options + ['sub_field_suffix']
     type_name = 'location'
     solr_class = 'solr.LatLonType'
     sub_field_suffix = '_coordinate'
