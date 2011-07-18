@@ -243,7 +243,7 @@ class SolrQuery(object):
         self.params['tie'] = tie
         return self
 
-    def default_search(self, query):
+    def default_query(self, query):
         self.params['q.alt'] = query
         return self
 
