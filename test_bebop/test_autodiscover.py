@@ -10,8 +10,8 @@ from unittest import TestCase
 class TestModel(TestCase):
 
     def test_autodiscover(self):
-        import bebop.test
+        import test
         solr = Solr()
-        solr.autodiscover_indexes(bebop.test)
+        solr.autodiscover_indexes(test)
         solr.generate_solr_configs()
         self.assertTrue(True)
