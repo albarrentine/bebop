@@ -1,9 +1,10 @@
 from unittest import TestCase
 from bebop import *
+import os
 
 class TestGenerateSchema(TestCase):
     def test_schema(self):
-        filename = './test/unit_test_schema.xml'
+        generated_path = os.path.join(os.path.dirname(__file__), 'unit_test_schema.xml')
         schema = SolrSchema('test_schema',
                             field_types=SolrFieldTypes(Integer, Text),
                             fields = SolrSchemaFields(
@@ -12,9 +13,10 @@ class TestGenerateSchema(TestCase):
                                 )
                             )
 
-        schema.generate(path=filename)
+        schema.generate(path=generated_path)
 
-        generated_file = open(filename).read()
-        test_file = open('./test/test_schema.xml').read()
+        generated = open(generated_path).read()
+        expected_path = os.path.join(os.path.dirname(__file__), 'test_schema.xml')
+        expected = open(expected_path).read()
 
-        self.assertEqual(generated_file, test_file)
+        self.assertEqual(generated, expected)

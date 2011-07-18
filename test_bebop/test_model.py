@@ -6,10 +6,9 @@ Created on Feb 14, 2011
 
 from bebop import *
 import os, sys
-sys.path.append(os.path.join(os.path.realpath(__file__), os.pardir))
+sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir))
 
-import test
-print test
+import test_bebop
 from unittest import TestCase
 
 class FooDB(object):
@@ -47,6 +46,6 @@ class TestModel(TestCase):
 
     def test_search_url(self):
         solr = Solr()
-        solr.autodiscover_indexes(test)
+        solr.autodiscover_indexes(test_bebop)
         q = solr.search(Bar).query('baz').filter(Bar.id>=10).fields(Bar.name).limit(10).offset(5)
         self.assertEquals(q.join_params().items(), [('q', u'baz'),('fq', u'id:[10 TO *]'),('fl', u'name'),('rows',u'10'),('start',u'5')] )
