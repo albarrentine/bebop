@@ -1,5 +1,5 @@
 from unittest import TestCase
-from solr_bebop import *
+from bebop import *
 
 class TestGenerateSchema(TestCase):
     def test_schema(self):

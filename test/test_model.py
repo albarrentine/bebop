@@ -4,8 +4,8 @@ Created on Feb 14, 2011
 @author: al
 '''
 
-from solr_bebop import *
-import solr_bebop.test
+from bebop import *
+import bebop.test
 from unittest import TestCase
 
 class FooDB(object):
@@ -43,6 +43,6 @@ class TestModel(TestCase):
 
     def test_search_url(self):
         solr = Solr()
-        solr.autodiscover_indexes(solr_bebop.test)
+        solr.autodiscover_indexes(bebop.test)
         q = solr.search(Bar).query('baz').filter(Bar.id>=10).fields(Bar.name).limit(10).offset(5)
         self.assertEquals(q.join_params().items(), [('q', u'baz'),('fq', u'id:[10 TO *]'),('fl', u'name'),('rows',u'10'),('start',u'5')] )
