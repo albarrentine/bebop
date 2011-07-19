@@ -20,6 +20,12 @@ class SolrFieldType(BaseSolrXMLElement):
                'position_increment_gap'
                ]
 
+class TrieFieldType(SolrFieldType):
+    options = SolrFieldType.options + ['precision_step']
+    omit_norms = True
+    position_increment_gap = 0
+
+
 class String(SolrFieldType):
     solr_class='solr.StrField'
     type_name='string'
@@ -36,9 +42,20 @@ class Boolean(SolrFieldType):
     omit_norms = True
     sort_missing_last = True
 
-class Date(SolrFieldType):
+class PlainDate(SolrFieldType):
     solr_class = 'solr.DateField'
+    type_name = 'pdate'
+
+class TrieDate(TrieFieldType):
+    solr_class = 'solr.TrieDateField'
     type_name = 'date'
+    precision_step = 0
+
+class TrieDateRange(TrieDate):
+    type_name = 'tdate'
+    precision_step = 6
+
+Date = PlainDate
 
 class Random(SolrFieldType):
     solr_class = 'solr.RandomSortField'
@@ -48,25 +65,69 @@ class Random(SolrFieldType):
 Numeric types
 """
 
-class Integer(SolrFieldType):
+class PlainInteger(SolrFieldType):
     solr_class = 'solr.IntField'
+    type_name = 'pint'
+    omit_norms = True
+
+class TrieInteger(TrieFieldType):
+    solr_class = 'solr.TrieIntField'
     type_name = 'int'
-    omit_norms = True
+    position_increment_gap = 0
 
-class Long(SolrFieldType):
+class TrieIntegerRange(TrieInteger):
+    type_name = 'tint'
+    precision_step = 8
+
+Integer = PlainInteger
+
+class PlainLong(SolrFieldType):
     solr_class = 'solr.LongField'
+    type_name = 'plong'
+    omit_norms = True
+
+class TrieLong(TrieFieldType):
+    solr_class = 'solr.TrieLongField'
     type_name = 'long'
-    omit_norms = True
+    precision_step = 0
 
-class Float(SolrFieldType):
+class TrieLongRange(TrieLong):
+    type_name = 'tlong'
+    precision_step = 8
+
+Long = PlainLong
+
+class PlainFloat(SolrFieldType):
     solr_class = 'solr.FloatField'
-    type_name = 'float'
+    type_name = 'pfloat'
     omit_norms = True
 
-class Double(SolrFieldType):
+class TrieFloat(TrieFieldType):
+    solr_class = 'solr.TrieFloatField'
+    type_name = 'float'
+    precision_step = 0
+
+class TrieFloatRange(TrieFloat):
+    type_name = 'tfloat'
+    precision_step = 8
+
+Float = PlainFloat
+
+class PlainDouble(SolrFieldType):
     solr_class = 'solr.DoubleField'
-    type_name = 'double'
+    type_name = 'pdouble'
     omit_norms = True
+
+class TrieDouble(TrieFieldType):
+    solr_class = 'solr.TrieDoubleField'
+    type_name = 'double'
+    precision_step = 0
+
+class TrieDoubleRange(TrieDouble):
+    type_name = 'tdouble'
+    precision_step = 8
+
+Double = PlainDouble
 
 class SortableInteger(SolrFieldType):
     solr_class = 'solr.SortableIntField'
@@ -129,6 +190,10 @@ class PatternTokenizer(Tokenizer):
     """
     solr_class = 'solr.PatternTokenizerFactory'
     options = ['pattern', 'group']
+
+class PathHierarchyTokenizer(Tokenizer):
+    solr_class = 'solr.PathHierarchyTokenizerFactory'
+
 
 """
 Filter classes
@@ -208,6 +273,20 @@ class WordDelimiterFilter(Filter):
 class EnglishPorterFilter(Filter):
     solr_class = 'solr.EnglishPorterFilterFactory'
     options = ['protected']
+
+class KeywordMarkerFilter(Filter):
+    solr_class = 'solr.KeywordMarkerFilterFactory'
+    options = ['protected']
+
+class PorterStemFilter(Filter):
+    solr_class = 'solr.PorterStemFilterFactory'
+
+class EnligshMinimalStemFilter(Filter):
+    solr_class = 'solr.EnglishMinimalStemFilterFactory'
+
+class ReversedWildcardFilter(Filter):
+    solr_class = 'solr.ReversedWildcardFilterFactory'
+    options = ['with_original', 'max_pos_asterisk', 'max_pos_question', 'max_fraction_asterisk']
 
 class SnowballPorterFilter(Filter):
     solr_class = 'solr.SnowballPorterFilterFactory'
@@ -427,11 +506,10 @@ class SolrSchemaField(BaseSolrXMLElement):
                'sort_missing_first', 'compressed', 'term_vectors', 'omit_norms',
                'position_increment_gap']
 
-    def __init__(self, solr_field_name, solr_field_type=NotGiven):
+    def __init__(self, solr_field_name, solr_field_type=NotGiven, **kw):
         if solr_field_type is NotGiven:
             raise SolrTypeError('No Solr type was defined for field "%s"' % solr_field_name)
-        super(SolrSchemaField, self).__init__(solr_field_name=solr_field_name, solr_field_type=solr_field_type.type_name)
-
+        super(SolrSchemaField, self).__init__(solr_field_name=solr_field_name, solr_field_type=solr_field_type.type_name, **kw)
 
 class SolrSchemaFields(BaseSolrXMLElement):
     tag = 'fields'
