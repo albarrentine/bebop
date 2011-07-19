@@ -46,8 +46,11 @@ def SearchIndex(name, config=StandardSolrConfig, generate_schema=True):
             field_types=set()
             schema_fields=[]
             for attr in fields:
-                schema_fields.append(getattr(cls, attr))
-                field_types.add(getattr(cls,attr)._solr_field_type)
+                field = getattr(cls, attr)
+                schema_fields.append(field)
+                field_types.add(field._solr_field_type)
+                if hasattr(field, 'siblings'):
+                    [field_types.add(sibling._solr_field_type) for sibling in field.siblings]
 
         cls.solr_schema=SolrSchema(name=name,
                                   fields=SolrSchemaFields(*schema_fields),

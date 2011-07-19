@@ -6,12 +6,14 @@ Created on Jun 20, 2011
 
 import schema
 from query import LuceneQuery
-from util import SiblingNode
 
-class Field(schema.SolrSchemaField):
-    def __init__(self, name, multi_valued=None, document_id=False, indexed=None, stored=None, model_attr=None, **kw):
+class BaseField(schema.SolrSchemaField):
+    def __init__(self, name, solr_field_type=None, multi_valued=None, document_id=False, indexed=None, stored=None, model_attr=None, **kw):
+        if solr_field_type is not None:
+            self.solr_field_type = solr_field_type
+
         self._solr_field_type = self.solr_field_type
-        super(Field, self).__init__(solr_field_name=name, solr_field_type=self.solr_field_type, **kw)
+        super(BaseField, self).__init__(solr_field_name=name, solr_field_type=self.solr_field_type, **kw)
         if document_id:
             self.unique_key = schema.UniqueKey(name)
 
@@ -24,6 +26,7 @@ class Field(schema.SolrSchemaField):
         if model_attr:
             self._model_attr = model_attr
 
+class Field(BaseField):
     def __gt__(self, other):
         return LuceneQuery(self, '{', other, ' TO *}')
 
@@ -54,7 +57,7 @@ class Field(schema.SolrSchemaField):
     def __unicode__(self):
         return self.solr_field_name
 
-class DynamicField(schema.SolrSchemaField):
+class DynamicField(BaseField):
     tag = 'dynamicField'
 
 def and_(*args):
@@ -122,17 +125,19 @@ class IgnoredField(Field):
 class PointField(Field):
     solr_field_type = schema.Point
     def __init__(self, name, **kw):
-        self.coordinates = SiblingNode(DynamicField("*%s" % self.solr_field_type.sub_field_suffix,
-                                                    schema.TrieDouble, stored=False))
+        self.siblings = set([DynamicField("*%s" % self.solr_field_type.sub_field_suffix,
+                                                    schema.TrieDouble, stored=False)])
         super(PointField, self).__init__(name, **kw)
-
 
 class GeoPointField(Field):
     solr_field_type = schema.GeoPoint
     def __init__(self, name, **kw):
-        self.coordinates = SiblingNode(DynamicField("*%s" % self.solr_field_type.sub_field_suffix,
-                                                    schema.TrieDoubleRange, stored=False))
+        self.siblings = set([DynamicField("*%s" % self.solr_field_type.sub_field_suffix,
+                                                    schema.TrieDoubleRange, stored=False)])
         super(GeoPointField, self).__init__(name, **kw)
+
+    def bounding_box(self, lat, lon, distance):
+        pass
 
     def distance_from(self, lat, lon):
         pass
