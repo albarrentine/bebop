@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <schema name="test_schema" version="1.1">
   <types>
-    <fieldType class="solr.IntField" name="int" omitNorms="true"/>
+    <fieldType class="solr.IntField" name="pint" omitNorms="true"/>
     <fieldType class="solr.TextField" name="text">
       <analyzer type="index">
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
@@ -26,7 +26,7 @@
   </types>
   <fields>
     <field name="foo" type="text"/>
-    <field name="bar" type="int"/>
+    <field name="bar" type="pint"/>
   </fields>
   <uniqueKey>bar</uniqueKey>
 </schema>
