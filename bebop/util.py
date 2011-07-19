@@ -10,6 +10,7 @@ from lxml import objectify
 from collections import defaultdict, deque, MutableSet
 import os
 import inspect
+import functools
 from UserDict import DictMixin
 
 try:
@@ -96,6 +97,10 @@ def _collect_dependencies(obj, deps=defaultdict(set), refs=defaultdict(int)):
 
     return deps, refs
 
+class SiblingNode(object):
+    def __init__(self, node):
+        self.node = node
+
 def _to_xml(node):
     root=None
     # Topsort: schedule items with no dependers
@@ -124,6 +129,8 @@ def _to_xml(node):
                 options[obj.optional[attr]] = _stringify(value)
             elif attr=='value':
                 element.text=_stringify(value)
+            elif isinstance(value, SiblingNode):
+                q.append((value.node, parent))
             # For referencing elements without throwing them in the schema, use an underscore
             elif attr.startswith('_'):
                 continue
