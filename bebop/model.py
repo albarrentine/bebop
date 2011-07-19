@@ -6,11 +6,12 @@ Created on Jun 20, 2011
 
 import schema
 from query import LuceneQuery
+from util import SiblingNode
 
 class Field(schema.SolrSchemaField):
     def __init__(self, name, multi_valued=None, document_id=False, indexed=None, stored=None, model_attr=None, **kw):
         self._solr_field_type = self.solr_field_type
-        super(Field, self).__init__(solr_field_name=name, solr_field_type=self.solr_field_type)
+        super(Field, self).__init__(solr_field_name=name, solr_field_type=self.solr_field_type, **kw)
         if document_id:
             self.unique_key = schema.UniqueKey(name)
 
@@ -53,11 +54,15 @@ class Field(schema.SolrSchemaField):
     def __unicode__(self):
         return self.solr_field_name
 
+class DynamicField(schema.SolrSchemaField):
+    tag = 'dynamicField'
+
 def and_(*args):
     return '(' + ' AND '.join([unicode(arg) for arg in args]) + ')'
 
 def or_(*args):
     return '(' + ' OR '.join([unicode(arg) for arg in args]) + ')'
+
 
 
 class StrField(Field):
@@ -116,9 +121,21 @@ class IgnoredField(Field):
 
 class PointField(Field):
     solr_field_type = schema.Point
+    def __init__(self, name, **kw):
+        self.coordinates = SiblingNode(DynamicField("*%s" % self.solr_field_type.sub_field_suffix,
+                                                    schema.TrieDouble, stored=False))
+        super(PointField, self).__init__(name, **kw)
+
 
 class GeoPointField(Field):
     solr_field_type = schema.GeoPoint
+    def __init__(self, name, **kw):
+        self.coordinates = SiblingNode(DynamicField("*%s" % self.solr_field_type.sub_field_suffix,
+                                                    schema.TrieDoubleRange, stored=False))
+        super(GeoPointField, self).__init__(name, **kw)
+
+    def distance_from(self, lat, lon):
+        pass
 
 class GeoHashField(Field):
     solr_field_type = schema.GeoHash
