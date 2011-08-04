@@ -7,8 +7,8 @@ Created on Feb 18, 2011
 #@todo: rewrite pysolr
 import pysolr
 try:
-    import gevent
-    gevent.monkey.patch_all()
+    from gevent import monkey
+    monkey.patch_all()
 except ImportError:
     try:
         import eventlet
