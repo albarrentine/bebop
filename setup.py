@@ -7,7 +7,7 @@ except ImportError:
 
 setup(
     name='bebop',
-    version='0.0.5',
+    version='0.0.6',
     description='Solr object mapping and schema generation without all the XML',
     author='Al Barrentine',
     url='http://www.github.com/thatdatabaseguy/bebop',
